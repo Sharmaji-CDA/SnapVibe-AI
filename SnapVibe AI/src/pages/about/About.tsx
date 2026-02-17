@@ -1,4 +1,32 @@
+import { useEffect, useState } from "react";
+import Skeleton from "../../components/common/Skeleton";
+
+function CreatorSkeletonCard() {
+  return (
+    <div className="rounded-2xl border bg-white p-6 text-center shadow-sm">
+      <Skeleton className="mx-auto h-24 w-24 rounded-full" />
+      <Skeleton className="mx-auto mt-4 h-5 w-32" />
+      <Skeleton className="mx-auto mt-2 h-4 w-24" />
+
+      <div className="mt-3 space-y-2">
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="mx-auto h-3 w-4/5" />
+      </div>
+    </div>
+  );
+}
+
 export default function About() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500); // simulate API delay
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <section className="mx-auto max-w-5xl px-6 py-20">
       {/* Header */}
@@ -16,16 +44,7 @@ export default function About() {
         <p className="text-lg">
           <span className="font-semibold text-indigo-400">SnapVibe AI</span> is a
           creative discovery platform built for designers, creators, and
-          everyday users who want stunning, AI-powered visuals. From wallpapers
-          and illustrations to unique themes, SnapVibe helps you find visuals
-          that inspire.
-        </p>
-
-        <p className="text-lg">
-          We believe AI should empower creativity — not replace it. That’s why
-          SnapVibe AI is designed to celebrate originality, giving creators a
-          platform to share their work while ensuring users get high-quality,
-          curated content.
+          everyday users who want stunning, AI-powered visuals.
         </p>
 
         {/* Feature Grid */}
@@ -35,8 +54,7 @@ export default function About() {
               🎨 AI-Powered Creativity
             </h3>
             <p>
-              Discover visually striking AI-generated images crafted by talented
-              creators across the globe.
+              Discover visually striking AI-generated images crafted by talented creators.
             </p>
           </div>
 
@@ -45,38 +63,10 @@ export default function About() {
               🤝 Fair Creator Economy
             </h3>
             <p>
-              We prioritize creators by building a platform that values their
-              work and supports sustainable earnings.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <h3 className="mb-2 text-xl font-semibold text-slate-800">
-              🚀 Premium Experience
-            </h3>
-            <p>
-              Clean design, fast performance, and curated collections — all
-              crafted for a smooth, premium browsing experience.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <h3 className="mb-2 text-xl font-semibold text-slate-800">
-              🌍 Built for Everyone
-            </h3>
-            <p>
-              Whether you’re a creator, designer, or casual user, SnapVibe AI
-              adapts to your creative needs.
+              We prioritize creators by building a platform that values their work.
             </p>
           </div>
         </div>
-
-        {/* Closing */}
-        <p className="pt-8 text-lg">
-          SnapVibe AI is more than just an image platform — it’s a growing
-          creative ecosystem. We’re building the future of visual discovery,
-          where technology and creativity move forward together.
-        </p>
       </div>
 
       {/* Meet the Creators */}
@@ -85,58 +75,55 @@ export default function About() {
           <h2 className="text-3xl font-bold tracking-tight text-slate-300">
             Meet the Creators
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-lg text-slate-500">
-            Talented artists and AI creators from around the world bringing ideas to
-            life through <span className="font-semibold text-indigo-400">SnapVibe AI</span>.
-          </p>
         </div>
 
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Creator Card */}
-          <div className="rounded-2xl border bg-white p-6 text-center shadow-sm transition hover:shadow-md">
-            <img
-              src="https://i.pravatar.cc/150?img=32"
-              alt="Creator avatar"
-              className="mx-auto h-24 w-24 rounded-full object-cover"
-            />
-            <h3 className="mt-4 text-xl font-semibold text-slate-800">
-              Alex Morgan
-            </h3>
-            <p className="text-sm text-slate-500">AI Visual Artist</p>
-            <p className="mt-3 text-sm text-slate-600">
-              Focused on cinematic AI wallpapers and surreal digital landscapes.
-            </p>
-          </div>
+          {loading ? (
+            <>
+              <CreatorSkeletonCard />
+              <CreatorSkeletonCard />
+              <CreatorSkeletonCard />
+            </>
+          ) : (
+            <>
+              {/* Real Creator Cards */}
+              <div className="rounded-2xl border bg-white p-6 text-center shadow-sm transition hover:shadow-md">
+                <img
+                  src="https://i.pravatar.cc/150?img=32"
+                  alt="Creator avatar"
+                  className="mx-auto h-24 w-24 rounded-full object-cover"
+                />
+                <h3 className="mt-4 text-xl font-semibold text-slate-800">
+                  Alex Morgan
+                </h3>
+                <p className="text-sm text-slate-500">AI Visual Artist</p>
+              </div>
 
-          <div className="rounded-2xl border bg-white p-6 text-center shadow-sm transition hover:shadow-md">
-            <img
-              src="https://i.pravatar.cc/150?img=47"
-              alt="Creator avatar"
-              className="mx-auto h-24 w-24 rounded-full object-cover"
-            />
-            <h3 className="mt-4 text-xl font-semibold text-slate-800">
-              Sophia Lee
-            </h3>
-            <p className="text-sm text-slate-500">Creative Technologist</p>
-            <p className="mt-3 text-sm text-slate-600">
-              Blending art and AI to create modern, minimal visual themes.
-            </p>
-          </div>
+              <div className="rounded-2xl border bg-white p-6 text-center shadow-sm transition hover:shadow-md">
+                <img
+                  src="https://i.pravatar.cc/150?img=47"
+                  alt="Creator avatar"
+                  className="mx-auto h-24 w-24 rounded-full object-cover"
+                />
+                <h3 className="mt-4 text-xl font-semibold text-slate-800">
+                  Sophia Lee
+                </h3>
+                <p className="text-sm text-slate-500">Creative Technologist</p>
+              </div>
 
-          <div className="rounded-2xl border bg-white p-6 text-center shadow-sm transition hover:shadow-md">
-            <img
-              src="https://i.pravatar.cc/150?img=12"
-              alt="Creator avatar"
-              className="mx-auto h-24 w-24 rounded-full object-cover"
-            />
-            <h3 className="mt-4 text-xl font-semibold text-slate-800">
-              Daniel Reyes
-            </h3>
-            <p className="text-sm text-slate-500">AI Designer</p>
-            <p className="mt-3 text-sm text-slate-600">
-              Passionate about generative art, abstract visuals, and creative tools.
-            </p>
-          </div>
+              <div className="rounded-2xl border bg-white p-6 text-center shadow-sm transition hover:shadow-md">
+                <img
+                  src="https://i.pravatar.cc/150?img=12"
+                  alt="Creator avatar"
+                  className="mx-auto h-24 w-24 rounded-full object-cover"
+                />
+                <h3 className="mt-4 text-xl font-semibold text-slate-800">
+                  Daniel Reyes
+                </h3>
+                <p className="text-sm text-slate-500">AI Designer</p>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </section>

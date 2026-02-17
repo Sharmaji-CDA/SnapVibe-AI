@@ -2,6 +2,7 @@ type Props = {
   title: string;
   previewColor: string;
   description?: string;
+  price?: number;
   popular?: boolean;
   premium?: boolean;
 };
@@ -10,6 +11,7 @@ export default function ThemeCard({
   title,
   previewColor,
   description,
+  price,
   popular,
   premium,
 }: Props) {
@@ -44,10 +46,18 @@ export default function ThemeCard({
         {description}
       </p>
 
-      {/* Action */}
-      <button className="w-full rounded-xl border px-4 py-3 text-sm font-medium transition hover:bg-slate-100">
-        Apply Theme
-      </button>
+      {/* Bottom Row */}
+      <div className="flex items-center justify-between">
+
+        <div className="text-sm font-semibold text-white">
+          {price ? `₹${price}` : "Free"}
+        </div>
+
+        <button className="rounded-lg bg-indigo-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-indigo-600">
+          {premium ? "Unlock" : "View Pack"}
+        </button>
+
+      </div>
     </div>
   );
 }

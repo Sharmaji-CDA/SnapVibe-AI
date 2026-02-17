@@ -1,11 +1,12 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
 import type { ImageItem } from "../../types/image.type";
 
 type Props = {
   image: ImageItem;
   onClose: () => void;
   onLike: () => void;
-  onDownload: () => void;
   isLiked: boolean;
 };
 
@@ -13,9 +14,11 @@ export default function ImagePreviewModal({
   image,
   onClose,
   onLike,
-  onDownload,
   isLiked,
 }: Props) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   // ESC to close
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -25,8 +28,36 @@ export default function ImagePreviewModal({
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
+  /* ---------------- DOWNLOAD FUNCTION ---------------- */
+  const handleDownload = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const response = await fetch(image.imageUrl);
+      const blob = await response.blob();
+
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${image.title.replace(/\s+/g, "-")}.jpg`;
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur">
       {/* Overlay */}
       <div
         className="absolute inset-0"
@@ -35,6 +66,7 @@ export default function ImagePreviewModal({
 
       {/* Modal */}
       <div className="relative z-10 mx-auto w-full max-w-4xl overflow-hidden rounded-3xl bg-slate-900 shadow-2xl">
+        
         {/* Close */}
         <button
           onClick={onClose}
@@ -44,6 +76,7 @@ export default function ImagePreviewModal({
         </button>
 
         <div className="grid md:grid-cols-2">
+
           {/* Image */}
           <div className="relative bg-black">
             <img
@@ -76,20 +109,20 @@ export default function ImagePreviewModal({
 
                 <span>⬇ {image.downloads}</span>
 
-                {/* {image.price && (
-                  <span className="flex items-center rounded-xl border border-white/20 px-5 text-sm">
+                {image.price && (
+                  <span className="rounded-xl border border-white/20 px-4 py-1 text-sm">
                     ₹{image.price}
                   </span>
-                )} */}
+                )}
               </div>
             </div>
 
             <div className="mt-10 flex gap-4">
               <button
-                onClick={onDownload}
-                className="flex-1 rounded-xl px-6 py-3 text-sm font-semibold text-white hover:bg-slate-200 transition"
+                onClick={handleDownload}
+                className="flex-1 rounded-xl bg-indigo-500 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-600 transition"
               >
-                Download
+                {image.price ? "Buy & Download" : "Download"}
               </button>
             </div>
           </div>

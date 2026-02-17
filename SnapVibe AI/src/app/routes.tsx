@@ -24,6 +24,7 @@ import Gallery from "../pages/gallery/Gallery";
 import AIGenerate from "../pages/ai/AIGenerate";
 import CreatorRoute from "../routes/CreatorRoute";
 import ForgotPassword from "../pages/auth/ForgotPassword";
+import Upgrade from "../pages/subscription/Upgrade";
 
 export default function AppRoutes() {
   return (
@@ -46,6 +47,7 @@ export default function AppRoutes() {
         <Route path="/refund-policy" element={<RefundPolicy />} />
 
         <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+        <Route path="/upgrade" element={<ProtectedRoute><Upgrade /></ProtectedRoute>} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
         <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />

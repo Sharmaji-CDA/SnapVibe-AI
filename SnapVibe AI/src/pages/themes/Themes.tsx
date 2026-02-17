@@ -3,9 +3,11 @@ import ThemeCard from "../../components/cards/ThemeCard";
 import Skeleton from "../../components/common/Skeleton";
 
 type Theme = {
+  id: string;
   title: string;
-  color: string;
+  previewColor: string;
   desc: string;
+  price?: number;
   popular?: boolean;
   premium?: boolean;
 };
@@ -18,31 +20,31 @@ export default function Themes() {
     const fetchThemes = async () => {
       setLoading(true);
 
-      // 🔥 Replace with Firestore later
-      await new Promise((res) =>
-        setTimeout(res, 800)
-      );
+      await new Promise((res) => setTimeout(res, 800));
 
       setThemes([
         {
-          title: "Dark Mode",
-          color: "#0f172a",
-          desc:
-            "Perfect for night viewing and focused work",
+          id: "1",
+          title: "Dark AMOLED Pack",
+          previewColor: "#0f172a",
+          desc: "Ultra-dark wallpapers optimized for AMOLED screens",
           popular: true,
+          price: 19,
         },
         {
-          title: "Minimal",
-          color: "#f8fafc",
-          desc:
-            "Clean, distraction-free interface",
+          id: "2",
+          title: "Minimal Light Pack",
+          previewColor: "#f8fafc",
+          desc: "Clean and distraction-free aesthetic wallpapers",
+          price: 15,
         },
         {
-          title: "Neon",
-          color: "#22d3ee",
-          desc:
-            "Bold, futuristic creative vibe",
+          id: "3",
+          title: "Neon Cyberpunk Pack",
+          previewColor: "#22d3ee",
+          desc: "Bold futuristic wallpapers with neon glow",
           premium: true,
+          price: 29,
         },
       ]);
 
@@ -53,66 +55,54 @@ export default function Themes() {
   }, []);
 
   return (
-    <section className="relative bg-slate-50">
-      <div className="mx-auto max-w-7xl px-6 py-20">
+    <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-black text-white">
+      
+      {/* Glow */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-indigo-500/20 blur-[140px]" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-6 py-20">
 
         {/* HEADER */}
         <div className="mb-16 max-w-3xl">
-          <p className="mb-3 text-xs uppercase tracking-widest text-indigo-500">
-            Personalization
+          <p className="mb-3 text-xs uppercase tracking-widest text-indigo-400">
+            Theme Packs
           </p>
 
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
-            Themes
+          <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
+            Premium Mobile Theme Collections
           </h1>
 
-          <p className="mt-4 text-slate-600">
-            Customize the look and feel of{" "}
-            <span className="font-bold text-indigo-600">
-              SnapVibe AI
-            </span>{" "}
-            to match your style.
+          <p className="mt-4 text-slate-300">
+            Curated wallpaper packs designed for mobile users.
+            Download complete theme bundles starting from ₹15.
           </p>
         </div>
 
-        {/* META INFO */}
-        {!loading && (
-          <div className="mb-12 flex flex-wrap gap-6 text-sm text-slate-500">
-            <span>
-              <strong className="text-slate-900">
-                {themes.length}
-              </strong>{" "}
-              available themes
-            </span>
-            <span>More coming soon</span>
-          </div>
-        )}
-
-        {/* ---------------- SKELETON ---------------- */}
+        {/* SKELETON */}
         {loading ? (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 3 }).map(
-              (_, i) => (
-                <div
-                  key={i}
-                  className="rounded-2xl bg-white p-6 shadow-sm"
-                >
-                  <Skeleton className="h-32 w-full rounded-xl mb-6" />
-                  <Skeleton className="h-5 w-32 mb-3 rounded-md" />
-                  <Skeleton className="h-4 w-full rounded-md" />
-                </div>
-              )
-            )}
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-2xl bg-slate-800 p-6"
+              >
+                <Skeleton className="h-32 w-full rounded-xl mb-6 bg-slate-700" />
+                <Skeleton className="h-5 w-32 mb-3 bg-slate-700 rounded-md" />
+                <Skeleton className="h-4 w-full bg-slate-700 rounded-md" />
+              </div>
+            ))}
           </div>
         ) : (
-          /* ---------------- THEMES GRID ---------------- */
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {themes.map((theme) => (
               <ThemeCard
-                key={theme.title}
+                key={theme.id}
                 title={theme.title}
-                previewColor={theme.color}
+                previewColor={theme.previewColor}
                 description={theme.desc}
+                price={theme.price}
                 popular={theme.popular}
                 premium={theme.premium}
               />
@@ -122,9 +112,9 @@ export default function Themes() {
 
         {/* FOOTNOTE */}
         {!loading && (
-          <div className="mt-20 rounded-2xl bg-white p-6 text-sm text-slate-600 shadow-sm">
-            🎨 Themes apply instantly and can be changed anytime.
-            Some premium themes may require an active subscription.
+          <div className="mt-16 rounded-2xl bg-slate-800 p-6 text-sm text-slate-300">
+            🎨 Theme packs include multiple wallpapers and style variations.
+            Some premium packs may require purchase or creator subscription.
           </div>
         )}
       </div>

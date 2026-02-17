@@ -1,62 +1,68 @@
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 export default function CategoriesSection() {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [active, setActive] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate API call
     setTimeout(() => {
       setCategories([
-        "Wallpapers",
         "Minimal",
         "Dark",
         "Cyberpunk",
         "Anime",
         "Abstract",
+        "Festival",
       ]);
       setLoading(false);
-    }, 1500);
+    }, 1000);
   }, []);
 
   return (
-    <section className="mx-auto max-w-7xl px-6 py-12">
+    <section className="relative mx-auto max-w-7xl bg-slate-900 px-6 py-16">
+
+      {/* Subtle background depth */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute left-1/2 top-0 h-[200px] w-[500px] -translate-x-1/2 rounded-full bg-indigo-500/5 blur-[100px]" />
+      </div>
+
       {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold tracking-tight text-slate-200">
+      <div className="mb-10 text-center">
+        <h2 className="text-3xl font-bold text-white">
           Explore by Style
         </h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Find visuals that match your mood and aesthetic
+        <p className="mt-2 text-sm text-slate-400">
+          Discover premium wallpapers curated by creators
         </p>
       </div>
 
       {/* Skeleton */}
       {loading ? (
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="h-9 w-24 animate-pulse rounded-full bg-slate-700"
+              className="h-20 rounded-2xl bg-slate-800 animate-pulse"
             />
           ))}
         </div>
       ) : (
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {categories.map((cat) => (
-            <button
+            <div
               key={cat}
-              onClick={() => setActive(cat)}
-              className={`rounded-full px-5 py-2 text-sm font-medium transition-all duration-200
-                ${
-                  active === cat
-                    ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
-                    : "border border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:-translate-y-[2px]"
-                }`}
+              onClick={() => navigate(`/gallery?category=${cat}`)}
+              className="group cursor-pointer rounded-2xl border border-slate-800 bg-slate-900 p-6 text-center transition hover:-translate-y-1 hover:border-indigo-500 hover:shadow-lg"
             >
-              {cat}
-            </button>
+              <p className="text-sm font-semibold text-white group-hover:text-indigo-400">
+                {cat}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                View Collection →
+              </p>
+            </div>
           ))}
         </div>
       )}

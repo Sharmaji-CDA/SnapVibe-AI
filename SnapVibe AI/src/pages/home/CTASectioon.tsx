@@ -10,37 +10,50 @@ export default function CTASection() {
     if (!user) {
       return {
         to: "/register",
-        text: "Get Started Free →",
+        text: "Start Free Today →",
       };
     }
 
     if (profile?.accountType === "creator") {
       return {
-        to: "/dashboard",
-        text: "Go to Dashboard →",
+        to: "/creator/dashboard",
+        text: "Open Creator Dashboard →",
       };
     }
 
     return {
-      to: "/generate",
-      text: "Generate First Visual →",
+      to: "/gallery",
+      text: "Explore Premium Wallpapers →",
     };
   };
 
   const cta = getPrimaryCTA();
 
   return (
-    <section className="relative overflow-hidden bg-black py-24 text-white">
+    <section className="relative bg-slate-950 border-t border-slate-800 py-24 text-white">
+
+      {/* Subtle glow (ONLY bottom CTA, not everywhere) */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-indigo-600/20 blur-[120px]" />
+      </div>
+
       <div className="relative mx-auto max-w-4xl px-6 text-center">
+
         <h2 className="mb-6 text-4xl font-extrabold sm:text-5xl">
-          Create stunning AI visuals in seconds
+          Discover Premium AI Wallpapers
+          <br />
+          <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+            or Start Selling Yours
+          </span>
         </h2>
 
-        <p className="mx-auto mb-10 max-w-2xl text-sm text-slate-300 sm:text-base">
-          Join thousands of creators discovering AI-powered visuals.
+        <p className="mx-auto mb-10 max-w-2xl text-sm text-slate-400 sm:text-base">
+          Buy exclusive mobile wallpapers from creators starting at ₹10
+          or generate your own with AI.
         </p>
 
         <div className="flex flex-col items-center justify-center gap-5 sm:flex-row">
+
           {cta && (
             <Link
               to={cta.to}
@@ -51,12 +64,18 @@ export default function CTASection() {
           )}
 
           <Link
-            to="/gallery"
+            to="/subscription?type=creator"
             className="rounded-xl border border-white/30 px-10 py-4 text-sm font-medium transition hover:bg-white/10"
           >
-            Explore Gallery
+            Become a Creator
           </Link>
+
         </div>
+
+        <p className="mt-6 text-xs text-slate-500">
+          No upfront cost • Earn from every download • Cancel anytime
+        </p>
+
       </div>
     </section>
   );

@@ -6,11 +6,11 @@ export default function Navbar() {
   const { user, profile, logout, loading } = useAuth();
 
   const [open, setOpen] = useState(false);
-  const [mobileOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-  // ✅ Close dropdown on outside click
+  /* ---------------- CLOSE DROPDOWN OUTSIDE CLICK ---------------- */
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -31,189 +31,244 @@ export default function Navbar() {
   }, [open]);
 
   const navClass = ({ isActive }: { isActive: boolean }) =>
-    `relative pb-1 transition ${
+    `relative block py-2 px-1 transition ${
       isActive
-        ? "text-white after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-full after:rounded-full after:bg-indigo-400"
+        ? "text-indigo-400 font-semibold after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-full after:bg-[#bae1e7] after:rounded-full"
         : "text-slate-300 hover:text-white"
     }`;
 
-  const displayName = user?.displayName || "User";
+  const displayName = profile?.displayName || user?.displayName || "User";
   const avatarUrl =
+    profile?.photoURL ||
     user?.photoURL ||
     `https://ui-avatars.com/api/?name=${displayName}&background=6366f1&color=fff`;
 
+  /* ---------------- LOADING STATE ---------------- */
+  if (loading) {
+    return (
+      <header className="sticky top-0 z-50 bg-slate-900 border-b border-white/10">
+        <div className="h-16 flex items-center justify-between px-6 max-w-7xl mx-auto">
+          <div className="h-6 w-32 bg-slate-700 animate-pulse rounded" />
+          <div className="h-8 w-20 bg-slate-700 animate-pulse rounded" />
+        </div>
+      </header>
+    );
+  }
+
   return (
-    <header className="sticky top-0 z-50">
-      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 border-b border-white/10">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-100 bg-slate-900 border-b border-white/10">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="flex h-16 items-center justify-between">
 
-            {/* Logo */}
-            <Link to="/" className="text-xl font-bold text-white">
-              <img
-                src="/src/assets/images/logo.png"
-                alt="SnapVibeAI Logo"
-                className="h-8 w-8 inline-block mr-2"
-              />
-              SnapVibe<span className="text-indigo-400">AI</span>
-            </Link>
+          {/* Logo */}
+          <Link to="/" className="text-xl font-bold text-white">
+            SnapVibe<span className="text-indigo-500">AI</span>
+          </Link>
 
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex gap-8 text-sm">
-              <NavLink to="/wallpapers" className={navClass}>
-                Wallpapers
-              </NavLink>
-              <NavLink to="/images" className={navClass}>
-                Images
-              </NavLink>
-              <NavLink to="/themes" className={navClass}>
-                Themes
-              </NavLink>
-              <NavLink to="/subscription" className={navClass}>
-                Subscription
-              </NavLink>
-            </nav>
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex gap-8 text-sm">
+            <NavLink to="/wallpapers" className={navClass}>
+              Wallpapers
+            </NavLink>
+            <NavLink to="/images" className={navClass}>
+              Images
+            </NavLink>
+            <NavLink to="/themes" className={navClass}>
+              Themes
+            </NavLink>
+            <NavLink to="/subscription" className={navClass}>
+              Subscription
+            </NavLink>
+          </nav>
 
-            {/* Right Side */}
-            {!loading && user ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setOpen(!open)}
-                  className="flex items-center gap-3 rounded-full bg-white/10 px-3 py-1.5 backdrop-blur hover:bg-white/20 transition"
+          {/* Right Side */}
+          {user ? (
+            <div className="flex items-center gap-4">
+
+              {/* Avatar */}
+              <button
+                onClick={() => setOpen(!open)}
+                className="flex items-center gap-2"
+              >
+                <img
+                  src={avatarUrl}
+                  className="h-9 w-9 rounded-full ring-2 ring-indigo-500"
+                />
+              </button>
+
+              {/* Dropdown */}
+              {open && (
+                <div
+                  ref={dropdownRef}
+                  className="absolute right-6 top-16 w-72 rounded-2xl bg-slate-900 border border-white/10 shadow-xl"
                 >
-                  <img
-                    src={avatarUrl}
-                    alt="User avatar"
-                    className="h-9 w-9 rounded-full ring-2 ring-indigo-400"
-                  />
-                  <span className="hidden sm:block text-sm text-white">
-                    {displayName}
-                  </span>
-                </button>
-
-                {open && (
-                  <div className="absolute right-0 mt-4 w-80 rounded-2xl bg-slate-900/95 backdrop-blur border border-white/10 shadow-2xl">
-                    
-                    {/* User Card */}
-                    <div className="flex items-center gap-4 px-6 py-5">
+                  <div className="p-5">
+                    <div className="flex items-center gap-3">
                       <img
                         src={avatarUrl}
-                        alt="User avatar"
-                        className="h-12 w-12 rounded-full ring-2 ring-indigo-400"
+                        className="h-12 w-12 rounded-full"
                       />
                       <div>
-                        <p className="text-sm font-semibold text-white">
+                        <p className="text-white font-semibold">
                           {displayName}
                         </p>
                         <p className="text-xs text-slate-400">
                           {user.email}
                         </p>
-                        {profile && (
-                          <p className="text-xs text-indigo-300 mt-1">
-                            {profile.accountType === "creator"
-                              ? "Creator Account"
-                              : "User Account"}
-                          </p>
+                        {profile?.accountType === "creator" && (
+                          <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-indigo-600 text-white rounded-full">
+                            Creator
+                          </span>
                         )}
                       </div>
                     </div>
 
-                    <div className="h-px bg-white/10" />
-
-                    {/* Menu */}
-                    <div className="py-3 text-sm">
-                      <Link
-                        to="/profile"
-                        className="block px-6 py-2 text-slate-300 hover:bg-white/10 hover:text-white"
-                        onClick={() => setOpen(false)}
-                      >
-                        👤 Profile
+                    <div className="mt-5 space-y-3 text-sm">
+                      <Link to="/profile" className="block text-slate-300 hover:text-white">
+                        Profile
                       </Link>
 
                       {profile?.accountType === "creator" && (
-                        <Link
-                          to="/dashboard"
-                          className="block px-6 py-2 text-slate-300 hover:bg-white/10 hover:text-white"
-                          onClick={() => setOpen(false)}
-                        >
-                          📊 Dashboard
+                        <Link to="/dashboard" className="block text-slate-300 hover:text-white">
+                          Dashboard
                         </Link>
                       )}
-
-                      <Link
-                        to="/contact"
-                        className="block px-6 py-2 text-slate-300 hover:bg-white/10 hover:text-white"
-                        onClick={() => setOpen(false)}
-                      >
-                        🛠 Support
-                      </Link>
                     </div>
 
-                    <div className="h-px bg-white/10" />
-
-                    <button
-                      className="w-full px-6 py-3 text-left text-sm text-red-400 hover:bg-red-500/10"
-                      onClick={async () => {
-                        setOpen(false);
-                        await logout();
-                      }}
-                    >
-                      🚪 Logout
-                    </button>
+                    <div className="mt-5 pt-4 border-t border-white/10">
+                      <button
+                        onClick={logout}
+                        className="text-red-400 hover:text-red-500 text-sm"
+                      >
+                        Logout
+                      </button>
+                    </div>
                   </div>
+                </div>
+              )}
+
+              {/* Mobile Toggle */}
+              <button
+                onClick={() => setMobileOpen(true)}
+                className="md:hidden text-white text-xl"
+              >
+                ☰
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center">
+              <div className="hidden md:flex items-center gap-4">
+                <Link to="/login" className="text-sm text-slate-300 hover:text-white">
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-slate-800 px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                >
+                  Get Started
+                </Link>
+              </div>
+              <button
+                onClick={() => setMobileOpen(true)}
+                className="md:hidden text-white text-xl"
+              >
+                ☰
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ---------------- MOBILE SLIDE MENU ---------------- */}
+      <div
+        className={`fixed inset-0 z-50 transition ${
+          mobileOpen ? "visible" : "invisible"
+        }`}
+      >
+        {/* Overlay */}
+        <div
+          className={`absolute inset-0 bg-black/60 transition-opacity ${
+            mobileOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setMobileOpen(false)}
+        />
+
+        {/* Slide Panel */}
+        <div
+          className={`absolute left-0 top-0 h-full w-80 bg-slate-900 p-6 transform transition-transform ${
+            mobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          {/* If Logged In */}
+          {user ? (
+            <>
+              <div className="mb-8">
+                <img
+                  src={avatarUrl}
+                  className="h-14 w-14 rounded-full mb-3"
+                />
+                <p className="text-white font-semibold">
+                  {displayName}
+                </p>
+                <p className="text-xs text-slate-400">
+                  {user.email}
+                </p>
+
+                {profile?.accountType === "creator" && (
+                  <span className="inline-block mt-2 px-3 py-1 text-xs bg-indigo-600 text-white rounded-full">
+                    Creator Account
+                  </span>
                 )}
               </div>
-            ) : (
-              <div className="flex items-center gap-4">
+
+              <div className="space-y-4 text-sm">
+                <NavLink to="/wallpapers" className={navClass}>Wallpapers</NavLink>
+                <NavLink to="/images" className={navClass}>Images</NavLink>
+                <NavLink to="/themes" className={navClass}>Themes</NavLink>
+                <NavLink to="/subscription" className={navClass}>Subscription</NavLink>
+
+                {profile?.accountType === "creator" && (
+                  <NavLink to="/dashboard" className={navClass}>Dashboard</NavLink>
+                )}
+              </div>
+
+              <div className="absolute bottom-6 left-6 right-6">
+                <button
+                  onClick={logout}
+                  className="w-full py-3 bg-red-500 rounded-xl text-white"
+                >
+                  Logout
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-white text-xl font-bold mb-8">
+                SnapVibe<span className="text-indigo-500">AI</span>
+              </h2>
+
+              <div className="space-y-4 text-sm">
+                <NavLink to="/wallpapers" className={navClass}>Wallpapers</NavLink>
+                <NavLink to="/images" className={navClass}>Images</NavLink>
+                <NavLink to="/themes" className={navClass}>Themes</NavLink>
+                <NavLink to="/subscription" className={navClass}>Subscription</NavLink>
+              </div>
+
+              <div className="absolute bottom-6 left-6 right-6 space-y-3">
                 <Link
                   to="/login"
-                  className="text-sm font-medium text-slate-300 hover:text-white"
+                  className="block w-full py-3 text-center border border-white/20 rounded-xl text-white"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="rounded-lg bg-blue-200 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-100"
+                  className="block w-full py-3 text-center rounded-xl text-white"
                 >
                   Get Started
                 </Link>
               </div>
-            )}
-          </div>
-
-          {/* Mobile Menu */}
-          {mobileOpen && (
-            <div className="md:hidden bg-slate-900 border-t border-white/10">
-              <div className="px-6 py-5 space-y-4 text-sm">
-                <NavLink to="/wallpapers" className={navClass}>
-                  Wallpapers
-                </NavLink>
-                <NavLink to="/images" className={navClass}>
-                  Images
-                </NavLink>
-                <NavLink to="/themes" className={navClass}>
-                  Themes
-                </NavLink>
-
-                {user ? (
-                  <button
-                    onClick={logout}
-                    className="w-full text-left pt-4 border-t border-white/10 text-red-400"
-                  >
-                    Logout
-                  </button>
-                ) : (
-                  <>
-                    <NavLink to="/login" className={navClass}>
-                      Login
-                    </NavLink>
-                    <NavLink to="/register" className={navClass}>
-                      Register
-                    </NavLink>
-                  </>
-                )}
-              </div>
-            </div>
+            </>
           )}
         </div>
       </div>

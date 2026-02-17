@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ImageCard from "./ImageCard";
 import Skeleton from "../common/Skeleton";
 import {
@@ -14,10 +15,17 @@ type Mode = "latest" | "trending" | "downloads";
 
 type Props = {
   mode: Mode;
+  category?: string;
+  filter?: "all" | "free" | "premium";
 };
 
-export default function ImageGrid({ mode }: Props) {
+export default function ImageGrid({
+  mode,
+  category = "All",
+  filter = "all",
+}: Props) {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [images, setImages] = useState<ImageItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,24 +36,51 @@ export default function ImageGrid({ mode }: Props) {
     setLoading(true);
 
     getImagesByMode(mode)
-      .then(setImages)
-      .finally(() => setLoading(false));
-  }, [mode]);
+      .then((data) => {
+        let filtered = data;
 
+        // Category filter
+        if (category !== "All") {
+          filtered = filtered.filter(
+            (img) => img.category === category
+          );
+        }
+
+        // Free / Premium filter
+        if (filter === "free") {
+          filtered = filtered.filter(
+            (img) => !img.price || img.price === 0
+          );
+        }
+
+        if (filter === "premium") {
+          filtered = filtered.filter(
+            (img) => img.price && img.price > 0
+          );
+        }
+
+        setImages(filtered);
+      })
+      .finally(() => setLoading(false));
+  }, [mode, category, filter]);
+
+  /* ---------------- LIKE ---------------- */
   const handleLike = async (img: ImageItem) => {
-    if (!user) return;
+    if (!user) {
+      navigate("/login");
+      return;
+    }
 
     const alreadyLiked =
       img.likedBy?.includes(user.uid) ?? false;
 
-    // 🔥 Optimistic UI
+    // Optimistic UI
     setImages((prev) =>
       prev.map((i) =>
         i.id === img.id
           ? {
               ...i,
-              likes:
-                i.likes + (alreadyLiked ? -1 : 1),
+              likes: i.likes + (alreadyLiked ? -1 : 1),
               likedBy: alreadyLiked
                 ? i.likedBy?.filter(
                     (id) => id !== user.uid
@@ -63,16 +98,26 @@ export default function ImageGrid({ mode }: Props) {
     );
   };
 
+  /* ---------------- DOWNLOAD / BUY ---------------- */
   const handleDownload = async (
     img: ImageItem
   ) => {
+    // If premium image → go to buy page
+    if (img.price && img.price > 0) {
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+
+      navigate(`/buy/${img.id}`);
+      return;
+    }
+
+    // Free image
     setImages((prev) =>
       prev.map((i) =>
         i.id === img.id
-          ? {
-              ...i,
-              downloads: i.downloads + 1,
-            }
+          ? { ...i, downloads: i.downloads + 1 }
           : i
       )
     );
@@ -81,46 +126,17 @@ export default function ImageGrid({ mode }: Props) {
     window.open(img.imageUrl, "_blank");
   };
 
-  const titleMap: Record<
-    Mode,
-    { title: string; desc: string }
-  > = {
-    latest: {
-      title: "Latest Uploads",
-      desc: "Fresh AI visuals from creators",
-    },
-    trending: {
-      title: "Trending Now",
-      desc:
-        "Most loved AI visuals by the community",
-    },
-    downloads: {
-      title: "Most Downloaded",
-      desc:
-        "Top downloaded visuals right now",
-    },
-  };
-
-  /* ---------------- SKELETON ---------------- */
+  /* ---------------- LOADING ---------------- */
   if (loading) {
     return (
-      <section className="relative mx-auto max-w-7xl px-6 py-14">
-        <div className="mb-10">
-          <Skeleton className="h-8 w-56 mb-3 rounded-md bg-slate-800" />
-          <Skeleton className="h-4 w-80 rounded-md bg-slate-800" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map(
-            (_, i) => (
-              <Skeleton
-                key={i}
-                className="aspect-[4/5] rounded-2xl bg-slate-800 animate-pulse"
-              />
-            )
-          )}
-        </div>
-      </section>
+      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton
+            key={i}
+            className="aspect-[4/5] rounded-2xl bg-slate-800"
+          />
+        ))}
+      </div>
     );
   }
 
@@ -128,30 +144,14 @@ export default function ImageGrid({ mode }: Props) {
   if (!images.length) {
     return (
       <div className="py-20 text-center text-slate-400">
-        No uploads yet.
+        No wallpapers found.
       </div>
     );
   }
 
   return (
-    <section className="relative mx-auto max-w-7xl px-6 py-14">
-      {/* Header */}
-      <div className="mb-10 flex items-center justify-between">
-        <div>
-          <h2 className={`text-3xl font-bold tracking-tight ${mode === "latest" ? "text-slate-500" : mode === "trending" ? "text-slate-500" : "text-slate-300"}`}>
-            {titleMap[mode].title}
-          </h2>
-          <p className="mt-1 text-sm text-slate-400">
-            {titleMap[mode].desc}
-          </p>
-        </div>
-
-        <button className="hidden sm:inline-flex rounded-xl border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 transition">
-          View all →
-        </button>
-      </div>
-
-      {/* Grid */}
+    <>
+      {/* GRID */}
       <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
         {images.map((img) => (
           <div
@@ -162,6 +162,7 @@ export default function ImageGrid({ mode }: Props) {
           >
             <ImageCard
               {...img}
+              price={img.price ?? undefined}
               isLiked={
                 user
                   ? img.likedBy?.includes(
@@ -179,13 +180,12 @@ export default function ImageGrid({ mode }: Props) {
               }}
               creatorAvatar={img.creatorAvatar}
               creatorName={img.creatorName}
-              price={20}
             />
           </div>
         ))}
       </div>
 
-      {/* Modal */}
+      {/* MODAL */}
       {selectedImage && (
         <ImagePreviewModal
           image={selectedImage}
@@ -207,6 +207,6 @@ export default function ImageGrid({ mode }: Props) {
           }
         />
       )}
-    </section>
+    </>
   );
 }

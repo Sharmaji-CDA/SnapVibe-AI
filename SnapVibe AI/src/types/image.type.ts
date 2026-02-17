@@ -9,8 +9,15 @@ export type ImageItem = {
   category?: string;
   source: string;
   prompt?: string;
+
   likes: number;
   downloads: number;
   likedBy?: string[];
+
   price?: number | null;
+
+  // 🔥 ADD THESE
+  status: "pending" | "approved" | "rejected";
+  isFeatured?: boolean;
+  createdAt?: any;
 };

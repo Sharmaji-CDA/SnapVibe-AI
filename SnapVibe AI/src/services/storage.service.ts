@@ -1,6 +1,7 @@
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "./firebase";
 
+// Creator content upload
 export async function uploadImage(file: File, userId: string) {
   const fileRef = ref(
     storage,
@@ -10,5 +11,16 @@ export async function uploadImage(file: File, userId: string) {
   await uploadBytes(fileRef, file);
   const url = await getDownloadURL(fileRef);
 
-  return url; // 🔥 public CDN URL
+  return url;
 }
+
+// Profile avatar upload
+export async function uploadAvatar(file: File, userId: string) {
+  const fileRef = ref(storage, `avatars/${userId}`);
+
+  await uploadBytes(fileRef, file);
+  const url = await getDownloadURL(fileRef);
+
+  return url;
+}
+
