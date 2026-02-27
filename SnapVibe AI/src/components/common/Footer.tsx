@@ -2,12 +2,13 @@ export default function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 text-sm text-slate-600">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-10 text-sm text-slate-600">
           {/* Brand */}
           <div>
-            <h3 className="mb-3 text-lg font-semibold text-slate-900">
+              <img src="/snap-logo.webp" alt="SnapVibe AI" className="h-9 w-auto mb-3" />
+            {/* <h3 className="mb-2 text-lg font-semibold text-slate-900">
               SnapVibe<span className="text-indigo-500">AI</span>
-            </h3>
+            </h3> */}
             <p className="text-sm text-slate-500">
               Discover, generate, and download premium AI-powered wallpapers,
               images, and themes.

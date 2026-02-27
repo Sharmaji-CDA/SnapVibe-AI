@@ -45,33 +45,33 @@ export default function ImageCard({
     <div className="group relative overflow-hidden rounded-2xl bg-slate-900 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
 
       {/* IMAGE */}
-      <div className="relative aspect-[4/5] overflow-hidden">
+      <div className="relative aspect-[9/14] overflow-hidden">
         <img
           src={imageUrl}
           alt={title}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
 
-        {/* Premium Ribbon */}
+        {/* PREMIUM STRIP */}
         {isPremium && (
-          <div className="absolute left-3 top-3 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white shadow-lg">
-            Premium
+          <div className="absolute top-0 left-0 w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-black text-xs font-semibold text-center py-1 tracking-wide">
+            PREMIUM • ₹{price}
           </div>
         )}
 
-        {/* Price Badge (Always Visible) */}
-        <div className="absolute right-3 top-3 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-          {isPremium ? `₹${price}` : "Free"}
-        </div>
-
-        {/* Gradient Overlay */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 transition duration-300 group-hover:opacity-100" />
-
         {/* Hover Content */}
         <div className="absolute bottom-0 w-full p-4 opacity-0 transition duration-300 group-hover:opacity-100">
-          <h3 className="mb-3 text-sm font-semibold text-white line-clamp-1">
-            {title}
-          </h3>
+          <div className="flex items-center gap-2">
+            <img
+              src={
+                creatorAvatar ||
+                `https://ui-avatars.com/api/?name=${creatorName}&background=111827&color=fff`
+              }
+              alt={creatorName}
+              className="h-6 w-6 rounded-full object-cover"
+            />
+            <span className="font-medium text-black">{creatorName}</span>
+          </div>
 
           <div className="flex items-center justify-between text-xs text-slate-200">
             <button
@@ -98,27 +98,6 @@ export default function ImageCard({
               ⬇ {downloads}
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* CREATOR FOOTER (Always Visible) */}
-      <div className="flex items-center gap-3 p-3">
-        <img
-          src={
-            creatorAvatar ||
-            `https://ui-avatars.com/api/?name=${creatorName}&background=111827&color=fff`
-          }
-          alt={creatorName}
-          className="h-8 w-8 rounded-full"
-        />
-
-        <div className="flex flex-col">
-          <span className="text-xs font-medium text-white line-clamp-1">
-            {creatorName}
-          </span>
-          <span className="text-[11px] text-slate-400">
-            Creator
-          </span>
         </div>
       </div>
     </div>

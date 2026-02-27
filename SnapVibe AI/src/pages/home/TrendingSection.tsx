@@ -130,7 +130,7 @@ export default function TrendingSection() {
             No trending visuals yet.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:gap-8 sm:grid-cols-3 lg:grid-cols-4">
 
             {images.slice(0, 8).map((img) => (
               <div
@@ -160,20 +160,8 @@ export default function TrendingSection() {
                     }}
                   />
 
-                  {/* PRICE BADGE */}
-                  {img.price && img.price > 0 && (
-                    <div className="absolute top-3 left-3 rounded-full bg-yellow-400 px-3 py-1 text-xs font-semibold text-black shadow-lg">
-                      ₹{img.price}
-                    </div>
-                  )}
-
-                  {/* HOT BADGE */}
-                  <div className="absolute top-3 right-3 rounded-full bg-red-500 px-2 py-1 text-[10px] font-semibold text-white shadow">
-                    HOT
-                  </div>
-
                   {/* HOVER BUY BUTTON */}
-                  {img.price && img.price > 0 && (
+                  {typeof img.price === "number" && img.price > 0 && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition group-hover:opacity-100">
                       <button
                         onClick={(e) => {
@@ -187,20 +175,8 @@ export default function TrendingSection() {
                     </div>
                   )}
                 </div>
-
-                {/* SOCIAL PROOF */}
-                <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-                  <span>❤️ {img.likes}</span>
-                  <span>⬇ {img.downloads}</span>
-                </div>
-
-                {/* CREATOR NAME */}
-                <p className="mt-1 text-xs text-slate-500 truncate">
-                  by {img.creatorName}
-                </p>
               </div>
             ))}
-
           </div>
         )}
 

@@ -20,4 +20,3 @@ export async function uploadAvatar(file: File, userId: string) {
 
   return filePath; // 🔥 RETURN PATH ONLY
 }
-

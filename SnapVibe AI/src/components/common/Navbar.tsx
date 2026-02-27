@@ -68,7 +68,8 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link to="/" className="text-xl font-bold text-white">
-            SnapVibe<span className="text-indigo-500">AI</span>
+            <img src="/snap-logo.webp" alt="SnapVibe AI" className="w-auto h-9" />
+            {/* SnapVibe<span className="text-indigo-500">AI</span> */}
           </Link>
 
           {/* Desktop Nav */}

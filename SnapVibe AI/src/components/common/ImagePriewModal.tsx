@@ -95,7 +95,7 @@ export default function ImagePreviewModal({
 
             <span>⬇ {image.downloads}</span>
 
-            {image.price && (
+            {typeof image.price === "number" && image.price > 0 && (
               <span className="rounded-xl border border-white/20 px-4 py-1 text-sm">
                 ₹{image.price}
               </span>
@@ -108,7 +108,7 @@ export default function ImagePreviewModal({
             onClick={handleDownload}
             className="w-full rounded-xl bg-indigo-500 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-600 transition"
           >
-            {image.price ? "Buy & Download" : "Download"}
+            {image.price && image.price > 0 ? `Buy for ₹${image.price}` : "Download"}
           </button>
         </div>
       </div>

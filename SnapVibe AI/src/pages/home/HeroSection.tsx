@@ -81,7 +81,7 @@ export default function HeroSection() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleGenerate();
                 }}
-                className="w-full bg-transparent text-sm text-white placeholder-slate-400 outline-none"
+                className="w-full bg-transparent text-sm text-white placeholder-slate-300 outline-none"
               />
 
               <button
@@ -93,7 +93,7 @@ export default function HeroSection() {
               </button>
             </div>
 
-            <p className="mt-3 text-xs text-slate-400">
+            <p className="mt-3 text-xs text-slate-200">
               Free users get watermark • Upgrade for HD & no watermark
             </p>
           </div>
@@ -125,9 +125,9 @@ export default function HeroSection() {
         {!loading && (
           <div className="mt-12 flex flex-wrap justify-center gap-4 sm:gap-6">
             {[
-              "https://images.unsplash.com/photo-1617854818583-09e7f077a156?auto=format&fit=crop&w=400&q=80",
-              "https://images.unsplash.com/photo-1618598348323-0b47b13d5f91?auto=format&fit=crop&w=400&q=80",
-              "https://images.unsplash.com/photo-1618598348451-cc0b2b5e6c5a?auto=format&fit=crop&w=400&q=80"
+              "https://picsum.photos/400/800?random=1",
+              "https://picsum.photos/400/800?random=2",
+              "https://picsum.photos/400/800?random=3"
             ].map((img, i) => (
               <div
                 key={i}
