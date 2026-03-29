@@ -23,7 +23,7 @@ import ForgotPassword from "../pages/auth/ForgotPassword";
 import Template from "../pages/template/Template";
 
 const Home = lazy(() => import("../pages/home/Home"));
-const Gallery = lazy(() => import("../pages/gallery/Gallery"));
+// const Gallery = lazy(() => import("../pages/gallery/Gallery"));
 const Upload = lazy(() => import("../pages/upload/Upload"));
 const Upgrade = lazy(() => import("../pages/subscription/Payment"));
 
@@ -33,7 +33,7 @@ export default function AppRoutes() {
       <Suspense fallback={<div className="text-center py-20">Loading...</div>}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/gallery" element={<Gallery />} />
+          {/* <Route path="/gallery" element={<Gallery />} /> */}
           <Route path="/upgrade" element={<ProtectedRoute><Upgrade /></ProtectedRoute>} />
           <Route path="/upload" element={<CreatorRoute><Upload /></CreatorRoute>} />
 

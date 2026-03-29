@@ -16,7 +16,7 @@ import { generateAI } from "../../services/ai.service";
 export default function HeroSection() {
   const { user } = useAuth();
 
-  const [loading, setLoading] = useState(true);
+  // const [ setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   const [generating, setGenerating] = useState(false);
@@ -31,8 +31,8 @@ export default function HeroSection() {
 
   /* ---------------- LOAD ---------------- */
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 400);
-    return () => clearTimeout(timer);
+    // const timer = setTimeout(() => setLoading(false), 400);
+    // return () => clearTimeout(timer);
   }, []);
 
   /* ---------------- SCROLL RESET ---------------- */
