@@ -15,7 +15,7 @@ export default function Login() {
   // 🔁 Redirect after login + profile load
   useEffect(() => {
     if (!authLoading && user) {
-      if (profile?.accountType === "creator") {
+      if (profile?.role === "creator" || profile?.role === "user") {
         navigate("/dashboard", { replace: true });
       } else {
         navigate("/", { replace: true });
@@ -35,7 +35,7 @@ export default function Login() {
       await login(email, password);
 
       // Redirect immediately
-      if (profile?.accountType === "creator") {
+      if (profile?.role === "creator" || profile?.role === "user") {
         navigate("/dashboard", { replace: true });
       } else {
         navigate("/", { replace: true });

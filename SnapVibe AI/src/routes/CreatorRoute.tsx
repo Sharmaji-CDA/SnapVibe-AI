@@ -23,7 +23,7 @@ export default function CreatorRoute({
   }
 
   // Logged in but not creator
-  if (profile?.accountType !== "creator") {
+  if (profile?.role !== "creator") {
     return <Navigate to="/subscription" replace />;
   }
 

@@ -13,8 +13,8 @@ import { db } from "../../firebase/firebase";
 import Skeleton from "../../components/ui/Skeleton";
 
 import {
-  Sparkles,
-  Lock,
+  // Sparkles,
+  // Lock,
   Eye,
   Heart,
   Download,
@@ -50,14 +50,14 @@ export default function FeedSection() {
 
   /* ---------------- ACTIONS ---------------- */
 
-  const handleGenerateSimilar = (img: ImageItem) => {
-    if (!img.prompt) return;
-    navigate(`/ai/generate?prompt=${encodeURIComponent(img.prompt)}`);
-  };
+  // const handleGenerateSimilar = (img: ImageItem) => {
+  //   if (!img.prompt) return;
+  //   navigate(`/ai/generate?prompt=${encodeURIComponent(img.prompt)}`);
+  // };
 
-  const handleBuy = (img: ImageItem) => {
-    navigate(`/buy/${img.id}`);
-  };
+  // const handleBuy = (img: ImageItem) => {
+  //   navigate(`/buy/${img.id}`);
+  // };
 
   const handleOpenImage = (img: ImageItem) => {
     navigate(`/image/${img.id}`);

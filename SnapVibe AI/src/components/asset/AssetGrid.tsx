@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import ImageCard from "./AssetCard";
 import Skeleton from "../ui/Skeleton";
 import type { ImageItem } from "../../types/asset.type";
-import { useAuth } from "../../contexts/auth/useAuth";
+// import { useAuth } from "../../contexts/auth/useAuth";
 import ImagePreviewModal from "../modals/ImagePreviewModal";
 
-import {
-  incrementLike,
-  incrementDownload,
-} from "../../services/assets/asset.action";
+// import {
+//   incrementLike,
+//   incrementDownload,
+// } from "../../services/assets/asset.action";
 
 type Mode = "latest" | "trending" | "downloads";
 
@@ -24,8 +24,8 @@ export default function ImageGrid({
   category = "All",
   filter = "all",
 }: Props) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  // const { user } = useAuth();
+  // const navigate = useNavigate();
 
   const [images, setImages] = useState<ImageItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,56 +66,56 @@ export default function ImageGrid({
   }, [mode, category, filter]);
 
   /* LIKE */
-  const handleLike = async (id: string, liked: boolean) => {
-    try {
-      const value = liked ? 1 : -1;
+  // const handleLike = async (id: string, liked: boolean) => {
+  //   try {
+  //     const value = liked ? 1 : -1;
 
-      // UI update
-      setImages((prev) =>
-        prev.map((img) =>
-          img.id === id
-            ? { ...img, likes: img.likes + value }
-            : img
-        )
-      );
+  //     // UI update
+  //     setImages((prev) =>
+  //       prev.map((img) =>
+  //         img.id === id
+  //           ? { ...img, likes: img.likes + value }
+  //           : img
+  //       )
+  //     );
 
-      await incrementLike(id, value);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  //     await incrementLike(id, value);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
   /* DOWNLOAD */
-  const handleDownload = async (id: string) => {
-    const img = images.find((i) => i.id === id);
-    if (!img) return;
+  // const handleDownload = async (id: string) => {
+  //   const img = images.find((i) => i.id === id);
+  //   if (!img) return;
 
-    if (img.price && img.price > 0) {
-      navigate(`/upgrade?imageId=${id}`);
-      return;
-    }
+  //   if (img.price && img.price > 0) {
+  //     navigate(`/upgrade?imageId=${id}`);
+  //     return;
+  //   }
 
-    if (!user) {
-      navigate("/login");
-      return;
-    }
+  //   if (!user) {
+  //     navigate("/login");
+  //     return;
+  //   }
 
-    try {
-      setImages((prev) =>
-        prev.map((i) =>
-          i.id === id
-            ? { ...i, downloads: i.downloads + 1 }
-            : i
-        )
-      );
+  //   try {
+  //     setImages((prev) =>
+  //       prev.map((i) =>
+  //         i.id === id
+  //           ? { ...i, downloads: i.downloads + 1 }
+  //           : i
+  //       )
+  //     );
 
-      await incrementDownload(id);
+  //     await incrementDownload(id);
 
-      window.open(img.imagePath, "_blank");
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  //     window.open(img.imagePath, "_blank");
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
   /* LOADING */
   if (loading) {

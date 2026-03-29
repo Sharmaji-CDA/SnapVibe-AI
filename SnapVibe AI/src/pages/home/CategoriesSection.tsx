@@ -10,7 +10,7 @@ type Category = {
 export default function CategoriesSection() {
   const navigate = useNavigate();
 
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories,] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Skeleton from "../../components/ui/Skeleton";
 import type { ImageItem } from "../../types/asset.type";
-import { useAuth } from "../../contexts/auth/useAuth";
+// import { useAuth } from "../../contexts/auth/useAuth";
 import ImagePreviewModal from "../../components/modals/ImagePreviewModal";
 import { Sparkles } from "lucide-react";
 
 export default function TrendingSection() {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [images, setImages] = useState<ImageItem[]>([]);
+  const [images,] = useState<ImageItem[]>([]);
   const [selectedImage, setSelectedImage] =
     useState<ImageItem | null>(null);
 
