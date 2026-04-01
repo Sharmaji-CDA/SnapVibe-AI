@@ -3,11 +3,12 @@ import {
   getDocs,
   query,
   where,
-  addDoc,
   deleteDoc,
   doc,
   getDoc,
   serverTimestamp,
+  setDoc,
+  orderBy,
 } from "firebase/firestore";
 
 import { db } from "../../firebase/firebase";
@@ -18,8 +19,10 @@ import { incrementLike } from "../assets/asset.action";
 export const getUserLikes = async (userId: string) => {
   const q = query(
     collection(db, "likes"),
-    where("userId", "==", userId)
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc")
   );
+
 
   const snapshot = await getDocs(q);
 
@@ -30,45 +33,37 @@ export const getUserLikes = async (userId: string) => {
       id: docItem.id,
       userId: data.userId,
       imageId: data.imageId,
-      creatorId: data.creatorId ?? null,
+      creatorId: data.creatorId ?? "",
       createdAt: data.createdAt,
     };
   });
 };
 
 export const isLiked = async (userId: string, imageId: string) => {
-  const q = query(
-    collection(db, "likes"),
-    where("userId", "==", userId),
-    where("imageId", "==", imageId)
-  );
-
-  const snapshot = await getDocs(q);
-  return !snapshot.empty;
+  const likeRef = doc(db, "likes", `${userId}_${imageId}`);
+  const snap = await getDoc(likeRef);
+  
+  return snap.exists();
 };
 
 /* ================= TOGGLE ================= */
 
 export const toggleLike = async (userId: string, imageId: string) => {
-  const likesRef = collection(db, "likes");
+  const likeId = `${userId}_${imageId}`;
+  const likeRef = doc(db, "likes", likeId);
 
-  const q = query(
-    likesRef,
-    where("userId", "==", userId),
-    where("imageId", "==", imageId)
-  );
+  const existing = await getDoc(likeRef);
 
-  const snapshot = await getDocs(q);
 
-  if (!snapshot.empty) {
+  if (existing.exists()) {
     // UNLIKE
-    await deleteDoc(snapshot.docs[0].ref);
+    await deleteDoc(likeRef);
     await incrementLike(imageId, -1);
 
     return { liked: false };
 
   } else {
-    // ✅ fetch image to get creatorId
+    // fetch image
     const imageRef = doc(db, "images", imageId);
     const imageSnap = await getDoc(imageRef);
 
@@ -76,10 +71,10 @@ export const toggleLike = async (userId: string, imageId: string) => {
       throw new Error("Image not found");
     }
 
-    const creatorId = imageSnap.data().creatorId || null;
+    const creatorId = imageSnap.data().creatorId || "";
 
     // LIKE
-    await addDoc(likesRef, {
+    await setDoc(likeRef, {
       userId,
       imageId,
       creatorId,

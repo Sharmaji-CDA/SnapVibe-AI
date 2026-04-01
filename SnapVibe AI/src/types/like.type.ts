@@ -12,4 +12,5 @@ export interface Like {
 
   // System
   createdAt: Timestamp;
+  updatedAt: Timestamp;
 }

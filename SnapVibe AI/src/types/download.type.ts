@@ -8,8 +8,9 @@ export interface Download {
   imageId: string;
 
   // Optional future use
-  creatorId?: string;
+  creatorId: string;
 
   // Analytics
   createdAt: Timestamp;
+  updatedAt: Timestamp;
 }

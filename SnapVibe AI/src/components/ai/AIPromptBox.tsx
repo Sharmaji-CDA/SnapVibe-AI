@@ -1,52 +1,136 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Send, Plus, X } from "lucide-react";
 
 export default function AIPromptBox({
   onSubmit,
-  placeholder = "Describe what you want...",
-  buttonText = "Generate",
+  placeholder = "Ask anything...",
   loading = false,
 }: {
-  onSubmit: (prompt: string) => void;
+  onSubmit: (prompt: string, file?: File | null) => void;
   placeholder?: string;
-  buttonText?: string;
   loading?: boolean;
 }) {
   const [prompt, setPrompt] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  /* ---------------- AUTO RESIZE ---------------- */
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const el = e.target;
+    setPrompt(el.value);
+
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  };
+
+  /* ---------------- FILE SELECT ---------------- */
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (selected) setFile(selected);
+  };
+
+  /* ---------------- REMOVE FILE ---------------- */
+  const removeFile = () => {
+    setFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  /* ---------------- SUBMIT ---------------- */
   const handleSubmit = () => {
     const trimmed = prompt.trim();
-    if (!trimmed || loading) return;
+    if ((!trimmed && !file) || loading) return;
 
-    onSubmit(trimmed);
+    onSubmit(trimmed, file);
+
+    setPrompt("");
+    setFile(null);
+
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+  };
+
+  /* ---------------- KEYBOARD ---------------- */
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
   };
 
   return (
-    <div className="space-y-4">
-      <div className="relative">
-        <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder={placeholder}
-          rows={4}
-          className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm text-slate-700 focus:border-black focus:bg-white focus:outline-none transition"
+    <div className="border border-gray-200 rounded-2xl bg-white px-3 py-2 shadow-sm">
+
+      {/* PREVIEW IMAGE */}
+      {file && (
+        <div className="relative mb-2 w-fit">
+          <img
+            src={URL.createObjectURL(file)}
+            className="h-16 w-16 object-cover rounded-lg border"
+          />
+          <button
+            onClick={removeFile}
+            className="absolute -top-2 -right-2 bg-black text-white rounded-full p-1"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      )}
+
+      <div className="flex items-end gap-2">
+
+        {/* PLUS ICON */}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="p-2 text-gray-600 bg-gray-300 rounded-lg hover:text-black"
+        >
+          <Plus size={18} />
+        </button>
+
+        {/* HIDDEN INPUT */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
         />
 
-        <div className="absolute bottom-2 right-3 text-xs text-gray-400">
-          {prompt.length} chars
-        </div>
+        {/* TEXTAREA */}
+        <textarea
+          ref={textareaRef}
+          value={prompt}
+          onChange={handleInput}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          rows={1}
+          maxLength={500}
+          className="flex-1 resize-none mx-2 bg-transparent text-md text-slate-700 placeholder:text-gray-400 outline-none max-h-[150px]"
+        />
+
+        {/* SEND BUTTON */}
+        <button
+          onClick={handleSubmit}
+          disabled={loading || (!prompt.trim() && !file)}
+          className={`p-2 rounded-xl transition ${
+            loading || (!prompt.trim() && !file)
+              ? "bg-gray-800 cursor-not-allowed"
+              : "bg-black hover:bg-gray-800"
+          }`}
+        >
+          <Send size={16} className="text-white" />
+        </button>
       </div>
 
-      <button
-        onClick={handleSubmit}
-        disabled={loading || !prompt.trim()}
-        className={`w-full rounded-2xl py-3 text-sm font-semibold text-white transition ${
-          loading || !prompt.trim()
-            ? "bg-gray-400"
-            : "bg-black hover:bg-gray-800"
-        }`}
-      >
-        {loading ? "Generating..." : buttonText}
-      </button>
+      {/* FOOTER */}
+      <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
+        <span>Enter to send • Shift + Enter for new line</span>
+        <span>{prompt.length}/500</span>
+      </div>
     </div>
   );
 }

@@ -24,7 +24,8 @@ export interface UserProfile {
   subscription: SubscriptionPlan
 
   /* ---------- Usage ---------- */
-  followers?: number;
+  followersCount?: number;
+  followingCount?: number;
   aiImageUsed?: number;
   aiTextUsed?: number;
   uploadsToday?: number;

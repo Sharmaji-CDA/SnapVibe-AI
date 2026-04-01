@@ -35,7 +35,7 @@ export const incrementView = async (imageId: string) => {
   try {
     const { ref, data } = await getAssetData(imageId);
 
-    const newViews = (data.views ?? 0) + 1;
+    const newViews = Math.max((data.views ?? 0) + 1, 0);
 
     const score = calculateScore({
       ...data,
@@ -62,7 +62,7 @@ export const incrementLike = async (
   try {
     const { ref, data } = await getAssetData(imageId);
 
-    const newLikes = (data.likes ?? 0) + value;
+    const newLikes = Math.max((data.likes ?? 0) + value, 0);
 
     const score = calculateScore({
       ...data,
@@ -84,7 +84,7 @@ export const incrementDownload = async (imageId: string) => {
   try {
     const { ref, data } = await getAssetData(imageId);
 
-    const newDownloads = (data.downloads ?? 0) + 1;
+    const newDownloads = Math.max((data.downloads ?? 0) + 1, 0);
 
     const score = calculateScore({
       ...data,

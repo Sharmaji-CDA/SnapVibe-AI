@@ -1,15 +1,11 @@
 import {
-  collection,
-  addDoc,
   deleteDoc,
-  getDocs,
-  query,
-  where,
   doc,
   updateDoc,
   increment,
   serverTimestamp,
   getDoc,
+  setDoc,
 } from "firebase/firestore";
 
 import { db } from "../../firebase/firebase";
@@ -20,14 +16,9 @@ export const isFollowing = async (
   userId: string,
   creatorId: string
 ) => {
-  const q = query(
-    collection(db, "follows"),
-    where("userId", "==", userId),
-    where("creatorId", "==", creatorId)
-  );
-
-  const snapshot = await getDocs(q);
-  return !snapshot.empty;
+  const followRef = doc(db, "follows", `${userId}_${creatorId}`);
+  const snap = await getDoc(followRef);
+  return snap.exists();
 };
 
 /* ================= TOGGLE ================= */
@@ -36,51 +27,63 @@ export const toggleFollow = async (
   userId: string,
   creatorId: string
 ) => {
-  const followsRef = collection(db, "follows");
+  try {
+    // ❌ prevent self follow
+    if (userId === creatorId) {
+      throw new Error("Cannot follow yourself");
+    }
 
-  const q = query(
-    followsRef,
-    where("userId", "==", userId),
-    where("creatorId", "==", creatorId)
-  );
+    const followId = `${userId}_${creatorId}`;
+    const followRef = doc(db, "follows", followId);
 
-  const snapshot = await getDocs(q);
+    const existing = await getDoc(followRef);
 
-  const creatorRef = doc(db, "users", creatorId);
-  const creatorSnap = await getDoc(creatorRef);
+    // ✅ creator check
+    const creatorRef = doc(db, "users", creatorId);
+    const creatorSnap = await getDoc(creatorRef);
 
-  if (!creatorSnap.exists()) {
-    throw new Error("Creator not found");
-  }
+    if (!creatorSnap.exists()) {
+      throw new Error("Creator not found");
+    }
 
-  // ✅ role check
-  if (creatorSnap.data().role !== "creator") {
-    throw new Error("Can only follow creators");
-  }
+    /* ================= UNFOLLOW ================= */
+    if (existing.exists()) {
+      await deleteDoc(followRef);
 
-  const currentFollowers = creatorSnap.data().followers || 0;
+      // decrease creator followers
+      await updateDoc(creatorRef, {
+        followersCount: increment(-1),
+      });
 
-  if (!snapshot.empty) {
-    // UNFOLLOW
-    await deleteDoc(snapshot.docs[0].ref);
+      // decrease user following
+      await updateDoc(doc(db, "users", userId), {
+        followingCount: increment(-1),
+      });
 
-    await updateDoc(creatorRef, {
-      followers: currentFollowers > 0 ? increment(-1) : 0,
-    });
+      return { following: false };
+    }
 
-    return { following: false };
-  } else {
-    // FOLLOW
-    await addDoc(followsRef, {
+    /* ================= FOLLOW ================= */
+    await setDoc(followRef, {
       userId,
       creatorId,
       createdAt: serverTimestamp(),
     });
 
+    // increase creator followers
     await updateDoc(creatorRef, {
-      followers: increment(1),
+      followersCount: increment(1),
+    });
+
+    // increase user following
+    await updateDoc(doc(db, "users", userId), {
+      followingCount: increment(1),
     });
 
     return { following: true };
+
+  } catch (error: any) {
+    console.error("toggleFollow error:", error);
+    throw new Error(error.message);
   }
 };

@@ -29,7 +29,7 @@ const mapDocToAsset = (
     id: snap.id,
 
     title: data.title ?? "",
-    imagePath: data.imagePath ?? "",
+    imagePath: data.imagePath ?? "/fallback.png",
 
     creatorId: data.creatorId ?? "",
     creatorName: data.creatorName ?? "Unknown Creator",
@@ -50,8 +50,8 @@ const mapDocToAsset = (
     status: data.status ?? "approved",
     isFeatured: data.isFeatured ?? false,
 
-    createdAt: data.createdAt ?? null,
-    updatedAt: data.updatedAt ?? null,
+    createdAt: data.createdAt || null,
+    updatedAt: data.updatedAt || null,
   };
 };
 
@@ -118,6 +118,7 @@ export async function getAssetsByCreator(
     const q = query(
       collection(db, "images"),
       where("creatorId", "==", creatorId),
+      where("status", "==", "approved"),
       orderBy("createdAt", "desc"),
       limit(PAGE_SIZE)
     );
@@ -144,7 +145,7 @@ export async function getAssetById(
     if (!snap.exists()) return null;
 
     return mapDocToAsset(
-      snap as QueryDocumentSnapshot<DocumentData>
+      snap as unknown as QueryDocumentSnapshot<DocumentData>
     );
 
   } catch (error) {

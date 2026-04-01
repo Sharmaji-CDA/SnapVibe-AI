@@ -1,7 +1,8 @@
 import * as admin from "firebase-admin";
 import { onRequest } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
-import fetch from "node-fetch";
+import { createCanvas, loadImage } from "canvas";
+import fetch from "node-fetch"; // ✅ REQUIRED
 
 admin.initializeApp();
 
@@ -9,26 +10,44 @@ admin.initializeApp();
 const HF_API_KEY = defineSecret("HUGGINGFACE_API_KEY");
 const OPENROUTER_API_KEY = defineSecret("OPENROUTER_API_KEY");
 
-/* ---------------- SMART TYPE DETECTION ---------------- */
+/* ---------------- WATERMARK ---------------- */
+const addWatermarkBuffer = async (buffer: Buffer): Promise<Buffer> => {
+  try {
+    const img = await loadImage(buffer);
+
+    const canvas = createCanvas(img.width, img.height);
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(img, 0, 0);
+
+    const fontSize = Math.floor(img.width / 18);
+    ctx.font = `${fontSize}px sans-serif`;
+
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.textAlign = "right";
+
+    ctx.shadowColor = "rgba(0,0,0,0.5)";
+    ctx.shadowBlur = 4;
+
+    ctx.fillText(
+      "SnapVibe AI",
+      img.width - 20,
+      img.height - 20
+    );
+
+    return canvas.toBuffer("image/png"); // ✅ consistent format
+  } catch (err) {
+    console.error("❌ Watermark failed:", err);
+    return buffer; // fallback
+  }
+};
+
+/* ---------------- TYPE DETECTION ---------------- */
 const detectType = (prompt: string): string => {
   const p = prompt.toLowerCase();
 
-  if (
-    p.includes("image") ||
-    p.includes("photo") ||
-    p.includes("picture") ||
-    p.includes("draw")
-  ) return "image";
-
-  if (
-    p.includes("code") ||
-    p.includes("api") ||
-    p.includes("function") ||
-    p.includes("javascript") ||
-    p.includes("react") ||
-    p.includes("angular")
-  ) return "code";
-
+  if (p.includes("image") || p.includes("photo") || p.includes("draw")) return "image";
+  if (p.includes("code") || p.includes("javascript") || p.includes("react")) return "code";
   if (p.includes("translate")) return "translate";
   if (p.includes("explain")) return "explain";
 
@@ -47,20 +66,17 @@ const fetchWithTimeout = async (url: string, options: any, timeout = 60000) => {
   }
 };
 
-/* ---------------- RETRY HANDLER ---------------- */
+/* ---------------- RETRY ---------------- */
 const callHFWithRetry = async (url: string, options: any, retries = 3) => {
   for (let i = 0; i < retries; i++) {
-    const res = await fetchWithTimeout(url, options, 60000);
+    const res = await fetchWithTimeout(url, options);
+
     const contentType = res.headers.get("content-type") || "";
 
     if (contentType.includes("application/json")) {
-      const data = await res.json() as Record<string, any>;
+      const data = await res.json() as any;
 
-      if (
-        data?.error &&
-        typeof data.error === "string" &&
-        data.error.toLowerCase().includes("loading")
-      ) {
+      if (data?.error?.toLowerCase()?.includes("loading")) {
         console.log(`Model loading... retry ${i + 1}`);
         await new Promise((r) => setTimeout(r, 3000));
         continue;
@@ -74,6 +90,8 @@ const callHFWithRetry = async (url: string, options: any, retries = 3) => {
 
   throw new Error("Model failed after retries");
 };
+
+/* ================= MAIN FUNCTION ================= */
 
 export const generateAI = onRequest(
   {
@@ -95,11 +113,10 @@ export const generateAI = onRequest(
         return;
       }
 
-      /* ---------------- AUTO TYPE ---------------- */
       const type = detectType(prompt);
       const isImage = type === "image";
 
-      /* ---------------- USER CHECK ---------------- */
+      /* ---------------- USER ---------------- */
       const userRef = admin.firestore().doc(`users/${uid}`);
       const userSnap = await userRef.get();
 
@@ -110,68 +127,21 @@ export const generateAI = onRequest(
 
       const user = userSnap.data()!;
       const subscription = user.subscription || "free";
+      const role = user.role || "user";
+
       const imageUsed = user.aiImageUsed || 0;
       const textUsed = user.aiTextUsed || 0;
 
-      const now = new Date();
-
-      // 🔥 TRIAL CHECK
-      if (user.trialEndsAt && now > user.trialEndsAt.toDate()) {
-        if (subscription !== "free") {
-          res.status(403).json({
-            error: "Trial expired. Please upgrade.",
-          });
-          return;
-        }
-      }
-
-      // 🟢 FREE PLAN
-      if (subscription === "free") {
-        if (isImage && imageUsed >= 15) {
-          res.status(403).json({
-            error: "Free plan: 15 image limit reached",
-          });
-          return;
-        }
-
-        if (!isImage && textUsed >= 50) {
-          res.status(403).json({
-            error: "Free plan: 50 text limit reached",
-          });
-          return;
-        }
-      }
-
-      // 🟡 BASIC
-      if (subscription === "basic" && isImage && imageUsed >= 100) {
-        res.status(403).json({
-          error: "Basic plan image limit reached",
-        });
+      /* ---------------- LIMITS ---------------- */
+      if (subscription === "free" && isImage && imageUsed >= 15) {
+        res.status(403).json({ error: "Free image limit reached" });
         return;
       }
 
-      // 🔵 STANDARD
-      if (subscription === "standard" && isImage && imageUsed >= 300) {
-        res.status(403).json({
-          error: "Standard plan image limit reached",
-        });
-        return;
-      }
-
-      let responseData: any = {};
-
-      /* ================= IMAGE (HUGGING FACE) ================= */
+      /* ================= IMAGE ================= */
       if (isImage) {
-        const modelUrl =
-          "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0";
-
-        const body = {
-          inputs: prompt,
-          options: { wait_for_model: true },
-        };
-
         const { res: hfResponse } = await callHFWithRetry(
-          modelUrl,
+          "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0",
           {
             method: "POST",
             headers: {
@@ -179,120 +149,113 @@ export const generateAI = onRequest(
               "Content-Type": "application/json",
               Accept: "image/png",
             },
-            body: JSON.stringify(body),
-          },
-          3
+            body: JSON.stringify({ inputs: prompt }),
+          }
         );
 
         const contentType = hfResponse.headers.get("content-type") || "";
 
-        if (contentType.includes("application/json")) {
-          res.status(500).json({
-            error: "Image model failed. Try again.",
-          });
-          return;
+        if (!contentType.startsWith("image")) {
+          throw new Error("Invalid image response");
         }
 
-        const imageBuffer = Buffer.from(await hfResponse.arrayBuffer());
+        const arrayBuffer = await hfResponse.arrayBuffer();
+        let imageBuffer: Buffer = Buffer.from(new Uint8Array(arrayBuffer));
 
+        if (!imageBuffer || imageBuffer.length === 0) {
+          throw new Error("Invalid image buffer");
+        }
+
+        /* 🔥 WATERMARK LOGIC */
+        const isPaidUser =
+          subscription === "standard" || subscription === "premium";
+
+        const shouldWatermark =
+          role !== "creator" && !isPaidUser;
+
+        if (shouldWatermark) {
+          imageBuffer = await addWatermarkBuffer(imageBuffer);
+        }
+
+        /* ---------------- STORAGE ---------------- */
         const bucket = admin.storage().bucket();
         const fileName = `ai/${uid}/${Date.now()}.png`;
 
         await bucket.file(fileName).save(imageBuffer, {
-          metadata: { contentType: "image/png" },
-          public: true,
+          metadata: {
+            contentType: "image/png",
+            cacheControl: "public, max-age=31536000",
+          },
         });
 
-        const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(fileName)}?alt=media`;
 
+        /* ---------------- FIRESTORE ---------------- */
         await admin.firestore().collection("images").add({
-          imageUrl,
-          prompt,
-          type,
+          title: prompt, // or generate better title
+          imagePath: imageUrl, // ✅ IMPORTANT FIX
           creatorId: uid,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
+          creatorName: user.name || "User",   // ✅ ADD
+          creatorAvatar: user.avatar || "",   // ✅ ADD
 
-        responseData = { type: "image", imageUrl };
-      }
-
-      /* ================= TEXT (OPENROUTER FINAL SECURE) ================= */
-      else {
-        let text = "";
-
-        try {
-          const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${OPENROUTER_API_KEY.value()}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: "meta-llama/llama-3-8b-instruct",
-              messages: [
-                {
-                  role: "user",
-                  content: prompt,
-                },
-              ],
-            }),
-          });
-
-          const data = await aiRes.json() as Record<string, any>;
-
-          console.log("AI RAW:", JSON.stringify(data));
-
-          if (!aiRes.ok) {
-            res.status(500).json({
-              error: data?.error?.message || "AI API failed",
-            });
-            return;
-          }
-
-          text =
-            data?.choices?.[0]?.message?.content?.trim() ||
-            "AI did not return a response.";
-
-        } catch (err: any) {
-          console.error("🔥 AI ERROR:", err);
-
-          res.status(500).json({
-            error: err.message || "Text generation failed",
-          });
-          return;
-        }
-
-        await admin.firestore().collection("ai_generations").add({
-          type,
           prompt,
-          output: text,
-          uid,
+          hasWatermark: shouldWatermark,
+          isPremium: role === "creator" ? false : subscription !== "free",
+          downloads: 0,
+          likes: 0,
+          views: 0,
+          score: 0,
+          price: null,
+          status: "approved", // ✅ CRITICAL FIX
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        responseData = {
-          type: "text",
-          text,
-        };
+        await userRef.update({
+          aiImageUsed: imageUsed + 1,
+        });
+
+        res.json({ type: "image", imageUrl });
+        return;
       }
 
-      /* ---------------- UPDATE USAGE ---------------- */
-      await userRef.update({
-        aiImageUsed: isImage ? imageUsed + 1 : imageUsed,
-        aiTextUsed: !isImage ? textUsed + 1 : textUsed,
+      /* ================= TEXT ================= */
+      const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${OPENROUTER_API_KEY.value()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "meta-llama/llama-3-8b-instruct",
+          messages: [{ role: "user", content: prompt }],
+        }),
       });
 
-      res.json(responseData);
+      const data = await aiRes.json() as any;
+
+      if (!aiRes.ok) {
+        throw new Error(data?.error?.message || "AI failed");
+      }
+
+      const text =
+        data?.choices?.[0]?.message?.content?.trim() ||
+        "No response";
+
+      await admin.firestore().collection("ai_generations").add({
+        prompt,
+        output: text,
+        uid,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      await userRef.update({
+        aiTextUsed: textUsed + 1,
+      });
+
+      res.json({ type: "text", text });
 
     } catch (err: any) {
       console.error("AI ERROR:", err);
-
-      if (err.name === "AbortError") {
-        res.status(500).json({
-          error: "Request timeout. Try again.",
-        });
-        return;
-      }
 
       res.status(500).json({
         error: err.message || "AI generation failed",

@@ -7,6 +7,9 @@ import { updateUserProfileData } from "../../services/user/user.service";
 import { getAssetsByCreator } from "../../services/assets/asset.query";
 import type { ImageItem } from "../../types/asset.type";
 import EditProfileModal from "../../components/modals/EditProfilModal";
+import { getUserDownloads } from "../../services/downloads/download.service";
+import { getUserLikes } from "../../services/likes/like.service";
+import { getAssetById } from "../../services/assets/asset.query";
 
 export default function UserProfile() {
   const { user, profile, refreshProfile } = useAuth();
@@ -18,6 +21,13 @@ export default function UserProfile() {
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [downloads, setDownloads] = useState<ImageItem[]>([]);
+  const [likes, setLikes] = useState<ImageItem[]>([]);
+  const [stats, setStats] = useState({
+    downloads: 0,
+    likes: 0,
+    uploads: 0,
+  });
 
   const isCreator = profile?.role === "creator";
 
@@ -27,17 +37,69 @@ export default function UserProfile() {
     setName(profile?.displayName || user.displayName || "");
     setBio(profile?.bio || "");
 
-    if (isCreator) {
-      getAssetsByCreator(user.uid)
-        .then(setImages)
-        .catch((err) => {
-          console.error("Failed to fetch assets:", err);
-          setImages([]);
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    const loadData = async () => {
+      try {
+        /* ---------------- CREATOR ---------------- */
+        if (isCreator) {
+          const assets = await getAssetsByCreator(user.uid);
+          setImages(assets);
+
+          const totalLikes = assets.reduce(
+            (sum, img) => sum + (img.likes || 0),
+            0
+          );
+
+          const totalDownloads = assets.reduce(
+            (sum, img) => sum + (img.downloads || 0),
+            0
+          );
+
+          setStats({
+            uploads: assets.length,
+            likes: totalLikes,
+            downloads: totalDownloads,
+          });
+
+          setLoading(false);
+        }
+
+        /* ---------------- USER ---------------- */
+        else {
+          const downloadIds = await getUserDownloads(user.uid);
+
+          const downloadImages = await Promise.all(
+            downloadIds.map((id) => getAssetById(id))
+          );
+
+          const validDownloads = downloadImages.filter(Boolean) as ImageItem[];
+          setDownloads(validDownloads);
+
+          const liked = await getUserLikes(user.uid);
+
+          const likedImages = await Promise.all(
+            liked.map((l) => getAssetById(l.imageId))
+          );
+
+          const validLikes = likedImages.filter(Boolean) as ImageItem[];
+          setLikes(validLikes);
+
+          setStats({
+            downloads: validDownloads.length,
+            likes: validLikes.length,
+            uploads: 0,
+          });
+
+          setLoading(false);
+        }
+
+      } catch (error) {
+        console.error(error);
+        setLoading(false);
+      }
+    };
+
+    loadData();
+
   }, [user, profile, isCreator]);
 
   if (!user) return null;
@@ -52,7 +114,6 @@ export default function UserProfile() {
         photoURL = await uploadAvatar(photoFile, user.uid);
       }
 
-      // ✅ FIXED
       await updateProfile(user, {
         displayName: name,
         photoURL,
@@ -66,44 +127,44 @@ export default function UserProfile() {
 
       await refreshProfile();
       setEditOpen(false);
-
     } catch (error) {
-      console.error("Profile update failed:", error);
+      console.error(error);
     }
   };
 
   return (
-    <section className="bg-slate-50">
-      <div className="mx-auto max-w-7xl px-6 py-20">
+    <section className="bg-slate-100 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
 
-        {/* PROFILE HEADER */}
-        <div className="rounded-3xl bg-white p-8 shadow-sm mb-12">
-          <div className="flex items-center justify-between">
+        {/* 🔥 PROFILE HEADER */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 sm:gap-6">
               <img
                 src={
                   profile?.photoPath ||
                   user.photoURL ||
                   `https://ui-avatars.com/api/?name=${name}`
                 }
-                className="h-24 w-24 rounded-full"
+                className="h-20 w-20 sm:h-24 sm:w-24 rounded-full"
               />
 
               <div>
-                <h1 className="text-2xl text-slate-600 font-bold">
+                <h1 className="text-lg sm:text-2xl font-bold text-slate-700">
                   {name}
                 </h1>
-                <p className="text-slate-500">
+
+                <p className="text-xs sm:text-sm text-slate-500">
                   {user.email}
                 </p>
 
-                <span className="mt-2 inline-block px-3 py-1 text-xs rounded-full bg-slate-700 text-white">
+                <span className="inline-block mt-2 px-3 py-1 text-[10px] sm:text-xs rounded-full bg-slate-800 text-white">
                   {profile?.role?.toUpperCase()} • {profile?.subscription}
                 </span>
 
                 {bio && (
-                  <p className="mt-2 text-sm text-slate-600">
+                  <p className="mt-2 text-xs sm:text-sm text-slate-600">
                     {bio}
                   </p>
                 )}
@@ -112,7 +173,7 @@ export default function UserProfile() {
 
             <button
               onClick={() => setEditOpen(true)}
-              className="px-6 py-3 rounded-xl bg-black text-white text-sm font-medium"
+              className="w-full sm:w-auto px-5 py-2 bg-black text-white rounded-xl text-sm"
             >
               Edit Profile
             </button>
@@ -120,14 +181,18 @@ export default function UserProfile() {
           </div>
         </div>
 
-        {/* ROLE CONTENT */}
+        {/* 🔥 USER / CREATOR CONTENT */}
         {!isCreator ? (
-          <NormalUserSection plan={profile?.subscription} />
+          <NormalUserSection plan={profile?.subscription} 
+             downloads={downloads}
+             likes={likes}
+             stats={stats} 
+          />
         ) : (
           <CreatorSection images={images} loading={loading} />
         )}
 
-        {/* MODAL */}
+        {/* 🔥 MODAL */}
         {editOpen && (
           <EditProfileModal
             name={name}
@@ -145,26 +210,80 @@ export default function UserProfile() {
   );
 }
 
+/* ================= USER SECTION ================= */
 
-/* ================= SECTIONS ================= */
-
-function NormalUserSection({ plan }: { plan?: string }) {
+function NormalUserSection({ plan, downloads, likes, stats }: { plan?: string; downloads: ImageItem[]; likes: ImageItem[]; stats: any }) {
   return (
-    <div className="bg-white rounded-3xl p-8 shadow-sm">
-      <h2 className="text-xl font-semibold mb-4">
-        Account Overview
-      </h2>
+    <div className="space-y-6">
 
-      <p className="text-slate-600">
-        You are on the <b>{plan?.toUpperCase()}</b> plan.
-      </p>
+      {/* 🔥 STATS */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <Stat title="Downloads" value={stats.downloads} />
+        <Stat title="Likes" value={stats.likes} />
+        <Stat title="Purchases" value="0" />
+        <Stat title="Credits" value="0" />
+      </div>
 
-      <button className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-xl">
-        Upgrade to Creator
-      </button>
+      {/* 🔥 DOWNLOADS */}
+      <Section title="Your Downloads">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {downloads.length ? (
+            downloads.map((img) => (
+              <ImageCard
+                key={img.id}
+                {...img}
+                imageUrl={img.imagePath}
+                likes={img.likes}
+                downloads={img.downloads}
+                creatorAvatar={img.creatorAvatar}
+                creatorName={img.creatorName}
+                price={img.price ?? undefined}
+              />
+            ))
+          ) : (
+            <p className="text-sm text-slate-400">No downloads yet</p>
+          )}
+        </div>
+      </Section>
+
+      {/* 🔥 LIKES */}
+      <Section title="Liked Images">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {likes.length ? (
+            likes.map((img) => (
+              <ImageCard
+                key={img.id}
+                {...img}
+                imageUrl={img.imagePath}
+                likes={img.likes}
+                downloads={img.downloads}
+                creatorAvatar={img.creatorAvatar}
+                creatorName={img.creatorName}
+                price={img.price ?? undefined}
+              />
+            ))
+          ) : (
+            <p className="text-sm text-slate-400">No liked images</p>
+          )}
+        </div>
+      </Section>
+
+      {/* 🔥 SUBSCRIPTION */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm">
+        <p className="text-sm text-slate-600">
+          Current Plan: <b>{plan?.toUpperCase()}</b>
+        </p>
+
+        <button className="mt-4 px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm">
+          Upgrade Plan
+        </button>
+      </div>
+
     </div>
   );
 }
+
+/* ================= CREATOR SECTION ================= */
 
 function CreatorSection({
   images,
@@ -177,22 +296,44 @@ function CreatorSection({
 
   return (
     <>
-      <h2 className="text-xl font-semibold mb-6">
+      <h2 className="text-lg sm:text-xl font-semibold mb-4">
         Your Uploads
       </h2>
 
-      <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {images.map((img) => (
-          <ImageCard 
-            key={img.id} 
+          <ImageCard
+            key={img.id}
             {...img}
-            price={img.price ?? undefined}
             imageUrl={img.imagePath}
-            likes={0}
-            downloads={0}
+            price={img.price ?? undefined}
+            likes={img.likes || 0}
+            downloads={img.downloads || 0}
           />
         ))}
       </div>
     </>
+  );
+}
+
+/* ================= REUSABLE ================= */
+
+function Stat({ title, value }: any) {
+  return (
+    <div className="bg-white p-4 rounded-xl shadow-sm">
+      <p className="text-xs text-slate-500">{title}</p>
+      <h2 className="text-sm font-semibold mt-1">{value}</h2>
+    </div>
+  );
+}
+
+function Section({ title, children }: any) {
+  return (
+    <div>
+      <h3 className="text-sm font-medium text-slate-600 mb-3">
+        {title}
+      </h3>
+      {children}
+    </div>
   );
 }

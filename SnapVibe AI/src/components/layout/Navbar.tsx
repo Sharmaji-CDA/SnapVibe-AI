@@ -130,6 +130,10 @@ export default function Navbar() {
                             Dashboard
                           </Link>
                         )}
+
+                        <Link to="/subscription" className="block text-slate-300 hover:text-white">
+                          Subscription
+                        </Link>
                       </div>
 
                       <div className="mt-5 pt-4 border-t border-white/10">

@@ -53,7 +53,7 @@ export const fetchPlansByAccountType = async (
         id: docItem.id,
         name: data.name,
         accountType: data.accountType,
-        price: data.price ?? 0,
+        price: typeof data.price === "number" ? data.price : 0,
         features: Array.isArray(data.features) ? data.features : [],
         isActive: data.isActive ?? false,
 
@@ -119,7 +119,7 @@ export const createSubscriptionRecord = async (
       startDate: Timestamp.fromDate(start),
       endDate: Timestamp.fromDate(end),
 
-      isTrial: plan !== "free",
+      isTrial: false,
 
       amount: price,
       currency: "INR",
@@ -141,6 +141,7 @@ export const upgradeUserPlan = async (
 ) => {
   try {
     if (!uid) throw new Error("Invalid user");
+    if (!price || price < 0) throw new Error("Invalid price");
 
     const userRef = doc(db, "users", uid);
     const snap = await getDoc(userRef);
@@ -176,7 +177,7 @@ export const upgradeUserPlan = async (
         uid,
         plan,
         price,
-        userData.role
+        userData.role === "creator" ? "creator" : "user"
       );
     }
 
@@ -192,9 +193,9 @@ export const upgradeUserPlan = async (
 
 export const isTrialActive = (trialEndsAt: any) => {
   try {
-    if (!trialEndsAt || !trialEndsAt.seconds) return false;
+    if (!trialEndsAt || typeof trialEndsAt.toDate !== "function") return false;
 
-    return new Date() < new Date(trialEndsAt.seconds * 1000);
+    return new Date() < trialEndsAt.toDate();
 
   } catch {
     return false;

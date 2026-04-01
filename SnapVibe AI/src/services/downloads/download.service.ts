@@ -1,5 +1,4 @@
 import {
-  addDoc,
   collection,
   updateDoc,
   doc,
@@ -9,6 +8,8 @@ import {
   getDoc,
   serverTimestamp,
   increment,
+  setDoc,
+  orderBy,
 } from "firebase/firestore";
 
 import { db } from "../../firebase/firebase";
@@ -37,9 +38,11 @@ export const recordDownload = async (
   userId: string
 ) => {
   try {
-    const already = await hasDownloaded(userId, imageId);
+    const downloadId = `${userId}_${imageId}`;
+    const downloadRef = doc(db, "downloads", downloadId);
 
-    if (already) {
+    const existing = await getDoc(downloadRef);
+    if (existing.exists()) {
       return { success: true, duplicate: true };
     }
 
@@ -59,10 +62,10 @@ export const recordDownload = async (
       throw new Error("User not found");
     }
 
-    const creatorId = imageSnap.data().creatorId || null;
+    const creatorId = imageSnap.data().creatorId || "";
 
     // 🔥 create download record
-    await addDoc(collection(db, "downloads"), {
+    await setDoc(downloadRef, {
       imageId,
       userId,
       creatorId,
@@ -75,6 +78,7 @@ export const recordDownload = async (
     // 🔥 update user downloads count
     await updateDoc(userRef, {
       downloadsCount: increment(1),
+      updatedAt: serverTimestamp(),
     });
 
     return { success: true, duplicate: false };
@@ -92,14 +96,15 @@ export const getUserDownloads = async (
   try {
     const q = query(
       collection(db, "downloads"),
-      where("userId", "==", userId)
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc")
     );
 
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(
-      (docItem) => docItem.data().imageId
-    );
+    return snapshot.docs
+    .map((docItem) => docItem.data().imageId)
+    .filter(Boolean);
 
   } catch (error: any) {
     throw new Error(error.message);

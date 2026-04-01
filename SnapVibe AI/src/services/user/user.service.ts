@@ -31,7 +31,7 @@ export const ensureUserDoc = async (uid: string, email: string) => {
     const snap = await getDoc(userRef);
 
     if (!snap.exists()) {
-      const username = email.split("@")[0];
+      const username = email ? email.split("@")[0] : "user";
 
       await setDoc(userRef, {
         uid,
@@ -49,7 +49,8 @@ export const ensureUserDoc = async (uid: string, email: string) => {
         // ✅ FIXED USAGE
         aiImageUsed: 0,
         aiTextUsed: 0,
-        followers: 0,
+        followersCount: 0,
+        followingCount: 0,
 
         uploadsToday: 0,
         totalUploads: 0,
@@ -90,7 +91,7 @@ export const getUserProfile = async (
     const data = snap.data() as UserProfile;
 
     // 🔥 MONTHLY RESET LOGIC
-    if (data.lastAIReset?.toDate) {
+    if (data.lastAIReset && "toDate" in data.lastAIReset) {
       const lastReset = data.lastAIReset.toDate();
       const now = new Date();
 
@@ -110,7 +111,9 @@ export const getUserProfile = async (
 
     return {
       ...data,
-      followers: data.followers ?? 0,
+      followersCount: data.followersCount ?? 0,
+      followingCount: data.followingCount ?? 0,
+      downloadsCount: data.downloadsCount ?? 0,
       aiTextUsed: data.aiTextUsed ?? 0,
       aiImageUsed: data.aiImageUsed ?? 0,
     };
@@ -134,7 +137,7 @@ export const updateUserProfileData = async (
     const ref = await getUserRefSafe(uid);
 
     await updateDoc(ref, {
-      ...data,
+      ...(data || {}),
       updatedAt: serverTimestamp(),
     });
   } catch (error: any) {
@@ -193,7 +196,7 @@ export const upgradeToCreator = async (uid: string) => {
 
     await updateDoc(ref, {
       role: "creator",
-      subscription: "creator",
+      subscription: "pro",
       planStartedAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });

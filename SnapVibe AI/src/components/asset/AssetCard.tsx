@@ -1,7 +1,12 @@
 import { Heart, Download, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { incrementLike, incrementDownload, incrementView } from "../../services/assets/asset.action";
+import { toggleLike, isLiked } from "../../services/likes/like.service";
+import { recordDownload } from "../../services/downloads/download.service";
+import { toggleFollow, isFollowing } from "../../services/follows/follow.service";
+import { incrementView } from "../../services/assets/asset.action";
+
+import { useAuth } from "../../contexts/auth/useAuth";
 
 type Props = {
   id: string;
@@ -10,6 +15,7 @@ type Props = {
   likes: number;
   downloads: number;
   price?: number;
+  creatorId: string;
   creatorName: string;
   creatorAvatar?: string;
 };
@@ -21,35 +27,63 @@ export default function ImageCard({
   likes,
   downloads,
   price,
+  creatorId,
   creatorName,
   creatorAvatar,
 }: Props) {
 
+  const { user } = useAuth();
+
   const isPremium = typeof price === "number" && price > 0;
 
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(likes);
-  const [downloadCount, setDownloadCount] = useState(downloads);
   const [followed, setFollowed] = useState(false);
+
+  const [, setLikeCount] = useState(likes);
+  const [, setDownloadCount] = useState(downloads);
+
   const [loadingLike, setLoadingLike] = useState(false);
   const [loadingDownload, setLoadingDownload] = useState(false);
+  const [loadingFollow, setLoadingFollow] = useState(false);
+
+  /* ================= INIT ================= */
+
+  useEffect(() => {
+    const init = async () => {
+      if (!user) return;
+
+      try {
+        const [likedRes, followRes] = await Promise.all([
+          isLiked(user.uid, id),
+          isFollowing(user.uid, creatorId),
+        ]);
+
+        setLiked(likedRes);
+        setFollowed(followRes);
+
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    init();
+  }, [user, id, creatorId]);
 
   /* ================= LIKE ================= */
+
   const handleLike = async (e: any) => {
     e.stopPropagation();
-    if (loadingLike) return;
+    if (!user || loadingLike) return;
 
     try {
       setLoadingLike(true);
 
-      const value = liked ? -1 : 1;
+      const res = await toggleLike(user.uid, id);
 
-      // UI update (instant)
-      setLiked(!liked);
-      setLikeCount((prev) => prev + value);
-
-      // Firebase update
-      await incrementLike(id, value);
+      setLiked(res.liked);
+      setLikeCount((prev) =>
+        res.liked ? prev + 1 : Math.max(prev - 1, 0)
+      );
 
     } catch (err) {
       console.error(err);
@@ -59,18 +93,21 @@ export default function ImageCard({
   };
 
   /* ================= DOWNLOAD ================= */
+
   const handleDownload = async (e: any) => {
     e.stopPropagation();
-    if (loadingDownload) return;
+    if (!user || loadingDownload) return;
 
     try {
       setLoadingDownload(true);
 
-      setDownloadCount((prev) => prev + 1);
+      const res = await recordDownload(id, user.uid);
 
-      await incrementDownload(id);
+      if (!res.duplicate) {
+        setDownloadCount((prev) => prev + 1);
+      }
 
-      // Optional: actual download
+      // actual download
       const link = document.createElement("a");
       link.href = imageUrl;
       link.download = title || "image";
@@ -83,7 +120,28 @@ export default function ImageCard({
     }
   };
 
+  /* ================= FOLLOW ================= */
+
+  const handleFollow = async (e: any) => {
+    e.stopPropagation();
+    if (!user || loadingFollow) return;
+
+    try {
+      setLoadingFollow(true);
+
+      const res = await toggleFollow(user.uid, creatorId);
+
+      setFollowed(res.following);
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingFollow(false);
+    }
+  };
+
   /* ================= VIEW ================= */
+
   const handleView = async () => {
     try {
       await incrementView(id);
@@ -155,10 +213,7 @@ export default function ImageCard({
       {/* FOLLOW */}
       <div className="absolute bottom-2 right-2 z-30 opacity-100 md:opacity-0 md:group-hover:opacity-100">
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setFollowed(!followed);
-          }}
+          onClick={handleFollow}
           className={`text-[10px] px-3 py-1 rounded-full font-semibold ${
             followed ? "bg-gray-300 text-black" : "bg-white text-black"
           }`}
@@ -168,10 +223,10 @@ export default function ImageCard({
       </div>
 
       {/* COUNTS */}
-      <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[11px] px-3 py-1 text-white z-30">
+      {/* <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[11px] px-3 py-1 text-white z-30">
         <span>❤️ {likeCount}</span>
         <span>⬇ {downloadCount}</span>
-      </div>
+      </div> */}
     </div>
   );
 }

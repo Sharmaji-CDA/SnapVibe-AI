@@ -36,6 +36,8 @@ export interface ImageItem {
   // Moderation
   status: ImageStatus;
   isFeatured?: boolean;
+  isDeleted?: boolean;
+  isPremium?: boolean;
 
   // System
   createdAt: Timestamp | null;

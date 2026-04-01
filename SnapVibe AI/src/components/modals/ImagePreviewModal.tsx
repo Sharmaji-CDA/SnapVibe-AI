@@ -1,13 +1,23 @@
-import { useEffect } from "react";
+import { Download, Heart, UserPlus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/auth/useAuth";
-import type { ImageItem } from "../../types/asset.type";
 
 type Props = {
-  image: ImageItem;
+  image: {
+    id: string;
+    imagePath: string;
+    title: string;
+    price?: number;
+    creatorId: string;
+    creatorName: string;
+    creatorAvatar?: string;
+  };
   onClose: () => void;
-  onLike: () => void;
+  onLike: (image: Props["image"]) => void;
   isLiked: boolean;
+  onFollow: (creatorId: string) => void;
+  onDownload: (image: Props["image"]) => void;
 };
 
 export default function ImagePreviewModal({
@@ -15,117 +25,157 @@ export default function ImagePreviewModal({
   onClose,
   onLike,
   isLiked,
+  onFollow,
+  onDownload,
 }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const isPremium = typeof image.price === "number" && image.price > 0;
+  const [loadingImg, setLoadingImg] = useState(true);
 
-  // ESC close
+  const isPremium =
+    typeof image.price === "number" && image.price > 0;
+
+  /* ESC + LOCK */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
 
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+
+    return () => {
+      document.body.style.overflow = "auto";
+      window.removeEventListener("keydown", handler);
+    };
   }, [onClose]);
 
-  const handleDownload = async () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
-    // PREMIUM IMAGE → GO TO PAYMENT
-    if (isPremium) {
-      navigate(`/upgrade?imageId=${image.id}&type=user`);
-      return;
-    }
-
-    // FREE IMAGE DOWNLOAD
-    try {
-      const response = await fetch(image.imagePath);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${image.title.replace(/\s+/g, "-")}.jpg`;
-
-      document.body.appendChild(link);
-      link.click();
-
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Download failed:", error);
-    }
-  };
-
   return (
-    <div className="relative flex flex-col md:grid md:grid-cols-2 bg-slate-900">
-
-      {/* Close */}
-      <button
-        onClick={onClose}
-        className="absolute right-4 top-4 text-white/70 hover:text-white z-20"
+    <div
+      className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-5xl p-4"
+        onClick={(e) => e.stopPropagation()}
       >
-        ✕
-      </button>
 
-      {/* IMAGE */}
-      <div className="bg-black flex items-center justify-center p-4">
-        <img
-          src={image.imagePath}
-          alt={image.title}
-          className="w-full max-h-[70vh] object-contain rounded-xl"
-        />
-      </div>
+        {/* CLOSE */}
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 text-white text-xl z-30"
+        >
+          ✕
+        </button>
 
-      {/* INFO */}
-      <div className="flex flex-col justify-between p-6 text-white">
+        {/* IMAGE WRAPPER */}
+        <div className="relative group rounded-xl overflow-hidden">
 
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold">
-            {image.title}
-          </h2>
+          {/* LOADING */}
+          {loadingImg && (
+            <div className="absolute inset-0 flex items-center justify-center text-white text-sm">
+              Loading...
+            </div>
+          )}
 
-          <p className="mt-2 text-sm text-slate-300">
-            by {image.creatorName}
-          </p>
+          {/* IMAGE */}
+          <img
+            src={image.imagePath}
+            alt={image.title}
+            onLoad={() => setLoadingImg(false)}
+            className={`w-full max-h-[80vh] object-contain transition ${
+              loadingImg ? "opacity-0" : "opacity-100"
+            }`}
+          />
 
-          <div className="mt-6 flex items-center gap-6 text-sm flex-wrap">
+          {/* HOVER OVERLAY */}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex flex-col justify-between p-4">
 
-            <button
-              onClick={onLike}
-              className={`transition ${
-                isLiked ? "text-red-400" : "hover:text-white"
-              }`}
-            >
-              ❤️ {image.likes}
-            </button>
+            {/* TOP ACTIONS */}
+            <div className="flex justify-end gap-3">
 
-            <span>⬇ {image.downloads}</span>
+              {/* LIKE */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLike(image);
+                }}
+                className="bg-black/60 backdrop-blur p-2 rounded-full"
+              >
+                <Heart
+                  size={18}
+                  className={isLiked ? "text-red-500 fill-red-500" : "text-white"}
+                />
+              </button>
 
-            {isPremium && (
-              <span className="rounded-xl border border-yellow-400 px-4 py-1 text-sm text-yellow-300">
-                ₹{image.price}
-              </span>
-            )}
+              {/* DOWNLOAD */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownload(image);
+                }}
+                className="bg-black/60 backdrop-blur p-2 rounded-full"
+              >
+                <Download size={18} className="text-white" />
+              </button>
+            </div>
+
+            {/* BOTTOM SECTION */}
+            <div className="flex justify-between items-end">
+
+              {/* CREATOR */}
+              <div className="flex items-center gap-2">
+                <img
+                  src={
+                    image.creatorAvatar ||
+                    `https://ui-avatars.com/api/?name=${image.creatorName}`
+                  }
+                  className="h-8 w-8 rounded-full border border-white"
+                />
+                <span className="text-white text-sm font-medium">
+                  {image.creatorName}
+                </span>
+              </div>
+
+              {/* FOLLOW */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  if (!user) {
+                    navigate("/login");
+                    return;
+                  }
+
+                  if (image.creatorId) {
+                    onFollow(image.creatorId);
+                  }
+                }}
+                className="bg-white text-black px-3 py-1 rounded-full text-xs font-semibold"
+              >
+                <UserPlus size={14} />
+              </button>
+            </div>
           </div>
+
+          {/* PRICE BADGE */}
+          {isPremium && (
+            <div className="absolute top-3 left-3 bg-yellow-400 text-black text-xs px-3 py-1 rounded-full font-bold">
+              ₹{image.price}
+            </div>
+          )}
         </div>
 
-        {/* ACTION BUTTON */}
-        <div className="mt-8">
+        {/* CTA BUTTON */}
+        <div className="mt-4 text-center">
           <button
-            onClick={handleDownload}
-            className="w-full rounded-xl bg-indigo-500 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-600 transition"
+            onClick={() => onDownload(image)}
+            className="px-6 py-3 bg-indigo-500 text-white rounded-xl font-semibold hover:bg-indigo-600"
           >
-            {isPremium ? `Buy for ₹${image.price}` : "Download"}
+            {isPremium ? `Buy ₹${image.price}` : "Download"}
           </button>
         </div>
-
       </div>
     </div>
   );

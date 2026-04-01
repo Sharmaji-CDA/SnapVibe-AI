@@ -4,12 +4,10 @@ import ProtectedRoute from "../routes/ProtectedRoute";
 import PublicRoute from "../routes/PublicRoute";
 
 // Pages
-import Wallpapers from "../pages/wallpapers/Wallpapers";
 import Images from "../pages/images/Images";
 import Subscription from "../pages/subscription/Subscription";
 import About from "../pages/about/About";
 import Contact from "../pages/contact/Contact";
-import CreatorDashboard from "../pages/profile/CreatorDashboard";
 import UserProfile from "../pages/profile/UserProfile";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
@@ -21,6 +19,9 @@ import AIGenerate from "../pages/ai/AIGenerate";
 import CreatorRoute from "../routes/CreatorRoute";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import Template from "../pages/template/Template";
+import Explore from "../pages/explore/Explore";
+import Dashboard from "../pages/dashboard/Dashboard";
+import FAQ from "../pages/faqs/Faqs";
 
 const Home = lazy(() => import("../pages/home/Home"));
 // const Gallery = lazy(() => import("../pages/gallery/Gallery"));
@@ -33,16 +34,15 @@ export default function AppRoutes() {
       <Suspense fallback={<div className="text-center py-20">Loading...</div>}>
         <Routes>
           <Route path="/" element={<Home />} />
-          {/* <Route path="/gallery" element={<Gallery />} /> */}
+          <Route path="/explore" element={<Explore />} />
           <Route path="/upgrade" element={<ProtectedRoute><Upgrade /></ProtectedRoute>} />
           <Route path="/upload" element={<CreatorRoute><Upload /></CreatorRoute>} />
 
-          <Route path="/wallpapers" element={<Wallpapers />} />
+          <Route path="/dashboard" element={<CreatorRoute><Dashboard /></CreatorRoute>} />
           <Route path="/images" element={<Images />} />
           <Route path="/template" element={<Template />} />
           <Route path="/subscription" element={<Subscription />} />
           <Route path="/ai/generate" element={<AIGenerate />} />
-          <Route path="/creator/dashboard" element={<CreatorRoute><CreatorDashboard /></CreatorRoute>} />
           
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
@@ -50,6 +50,7 @@ export default function AppRoutes() {
           <Route path="/support" element={<Support />} />
           <Route path="/terms-condition" element={<TermsAndConditions />} />
           <Route path="/refund-policy" element={<RefundPolicy />} />
+          <Route path="/faqs" element={<FAQ />} />
 
           <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
