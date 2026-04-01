@@ -395,12 +395,13 @@ export default function FeedSection() {
       </div>
       {selectedImage && (
         <ImagePreviewModal
-          image={selectedImage}
+          image={{...selectedImage,
+                  price: selectedImage.price ?? undefined, }}
           onClose={() => setSelectedImage(null)}
-          onLike={(img) => handleLike(img)}
+          onLike={(img) => handleLike(img as ImageItem)}
           isLiked={likedImages.includes(selectedImage.id)}
           onFollow={(creatorId) => handleFollow(creatorId)}
-          onDownload={(img) => handleDownload(img)} // connect later
+          onDownload={(img) => handleDownload(img as ImageItem)} // connect later
         />
       )}
     </section>
