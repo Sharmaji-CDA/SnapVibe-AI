@@ -13,47 +13,59 @@ export default function Contact() {
 
   const [error, setError] = useState("");
 
+  // ✅ Email validation
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
     });
+    setError(""); // clear error while typing
   };
 
-  const handleSubmit = async (
-    e: React.FormEvent
-  ) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !form.name ||
-      !form.email ||
-      !form.message
-    ) {
-      setError("Please fill all fields.");
+    // ✅ Validation
+    if (!form.name || !form.email || !form.message) {
+      setError("All fields are required.");
       return;
     }
 
-    setError("");
-    setLoading(true);
+    if (!isValidEmail(form.email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
 
-    // 🔥 Replace with real backend later
-    await new Promise((res) =>
-      setTimeout(res, 1000)
-    );
+    if (form.message.length < 10) {
+      setError("Message must be at least 10 characters.");
+      return;
+    }
 
-    setLoading(false);
-    setSuccess(true);
+    try {
+      setLoading(true);
+      setError("");
 
-    setForm({
-      name: "",
-      email: "",
-      message: "",
-    });
+      // 🔥 Replace this with real API call
+      await new Promise((res) => setTimeout(res, 1000));
+
+      setSuccess(true);
+      setForm({
+        name: "",
+        email: "",
+        message: "",
+      });
+
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,16 +75,16 @@ export default function Contact() {
         {/* HEADER */}
         <div className="mb-16 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
-            Contact Us
+            Contact CreatorVibe
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
-            Have a question, feedback, or partnership idea?
-            We’d love to hear from you.
+            Have questions, feedback, or collaboration ideas? 
+            We’re here to help creators and users.
           </p>
         </div>
 
         {/* CARD */}
-        <div className="mx-auto max-w-xl rounded-3xl bg-white p-10 shadow-lg transition">
+        <div className="mx-auto max-w-xl rounded-3xl bg-white p-10 shadow-lg">
 
           {success ? (
             <div className="text-center">
@@ -80,7 +92,7 @@ export default function Contact() {
                 Message Sent Successfully 🎉
               </h2>
               <p className="mt-3 text-sm text-slate-500">
-                We usually respond within 24 hours.
+                Our team will get back to you within 24 hours.
               </p>
 
               <button
@@ -91,16 +103,15 @@ export default function Contact() {
               </button>
             </div>
           ) : (
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-6"
-            >
+            <form onSubmit={handleSubmit} className="space-y-6">
+
               {error && (
                 <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
                   {error}
                 </div>
               )}
 
+              {/* NAME */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
                   Your Name
@@ -115,6 +126,7 @@ export default function Contact() {
                 />
               </div>
 
+              {/* EMAIL */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
                   Email Address
@@ -129,6 +141,7 @@ export default function Contact() {
                 />
               </div>
 
+              {/* MESSAGE */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
                   Message
@@ -143,12 +156,9 @@ export default function Contact() {
                 />
               </div>
 
+              {/* BUTTON */}
               <Button
-                label={
-                  loading
-                    ? "Sending..."
-                    : "Send Message"
-                }
+                label={loading ? "Sending..." : "Send Message"}
                 fullWidth
                 disabled={loading}
               />

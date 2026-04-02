@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 sm:gap-10 text-sm text-slate-600">
           {/* Brand */}
           <div>
-              <img src="/snap-logo.webp" alt="SnapVibe AI" className="h-9 w-auto mb-3" />
+              <img src="/creator-logo.webp" alt="CreatorVibe AI" className="h-9 w-auto mb-3" />
             {/* <h3 className="mb-2 text-lg font-semibold text-slate-900">
               SnapVibe<span className="text-indigo-500">AI</span>
             </h3> */}
@@ -68,11 +68,11 @@ export default function Footer() {
         {/* Bottom */}
         <div className="mt-10 sm:mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-6 text-xs text-slate-500 text-center sm:text-left">
           <span>
-            © {new Date().getFullYear()} SnapVibe AI. All rights reserved.
+            © {new Date().getFullYear()} CreatorVibe. All rights reserved.
           </span>
-          <span>
+          {/* <span>
             Made with ❤️ using AI
-          </span>
+          </span> */}
         </div>
       </div>
       {openFeedback && (

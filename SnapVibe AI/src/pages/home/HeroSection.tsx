@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Skeleton from "../../components/ui/Skeleton";
 import {
   Plus,
-  Sparkles,
   Download,
   Copy,
   Eye,
@@ -10,6 +9,7 @@ import {
   Share,
   ThumbsDown,
   MessageCircleCheck,
+  Send,
 } from "lucide-react";
 import { useAuth } from "../../contexts/auth/useAuth";
 import { generateAI } from "../../services/ai.service";
@@ -235,7 +235,7 @@ export default function HeroSection() {
         {/* HERO HEADER */}
         <div className="text-center mb-10">
           <div className="inline-block mb-4 rounded-full bg-gradient-to-r from-pink-500 to-yellow-400 px-4 py-1 text-xs font-semibold text-black shadow-lg">
-            🚀 SnapVibe AI
+            🚀 CreatorVibe AI
           </div>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight">
@@ -269,10 +269,9 @@ export default function HeroSection() {
 
             <button
               onClick={handleGenerate}
-              className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-yellow-400 px-5 py-2 rounded-xl text-black font-semibold"
+              className="flex items-center bg-gradient-to-r from-pink-500 to-yellow-400 px-4 py-2 rounded-lg text-black font-semibold"
             >
-              <Sparkles size={14} />
-              Generate
+              <Send size={14} />
             </button>
           </div>
 

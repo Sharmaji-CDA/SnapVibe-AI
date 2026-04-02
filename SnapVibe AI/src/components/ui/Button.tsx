@@ -17,7 +17,7 @@ export default function Button({
 
   const styles =
     variant === "primary"
-      ? "bg-black border border-white text-white hover:bg-gray-800"
+      ? "bg-indigo-600 border border-indigo-600 text-white hover:bg-indigo-700"
       : "border border-white hover:bg-slate-600";
 
   return (

@@ -24,8 +24,8 @@ export default function Navbar() {
   /* ---------------- MOCK DATA ---------------- */
   useEffect(() => {
     const data: NotificationType[] = [
-      { id: 1, text: "New message", read: false },
-      { id: 2, text: "New comment", read: false },
+      // { id: 1, text: "New message", read: false },
+      // { id: 2, text: "New comment", read: false },
     ];
 
     setNotifications(data);
@@ -87,7 +87,7 @@ export default function Navbar() {
           <div className="flex h-16 items-center justify-between">
             {/* LOGO */}
             <Link to="/" className="flex items-center gap-2">
-              <img src="/snap-logo.webp" className="h-9" />
+              <img src="/creator-logo.webp" className="h-9" />
             </Link>
 
             {/* DESKTOP NAV */}

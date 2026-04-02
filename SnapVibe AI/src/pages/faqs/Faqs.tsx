@@ -11,41 +11,64 @@ type FAQItem = {
 const FAQS: FAQItem[] = [
   {
     category: "General",
-    question: "What is SnapVibe AI?",
+    question: "What is CreatorVibe?",
     answer:
-      "SnapVibe AI is a platform to explore, generate, and download AI-powered images and templates.",
+      "CreatorVibe is an AI-powered platform where users can generate content and creators can publish and share their work.",
   },
   {
     category: "General",
-    question: "Is SnapVibe AI free?",
+    question: "Is CreatorVibe free to use?",
     answer:
-      "Yes, we offer free content. Premium assets require a subscription.",
+      "Yes, basic features are free. Premium tools and creator content may require a subscription.",
   },
   {
-    category: "Pricing",
-    question: "What plans do you offer?",
+    category: "AI",
+    question: "How does AI content generation work?",
     answer:
-      "We offer Free, Basic, Premium for users and Go/Pro for creators.",
+      "Simply enter your prompt, customize settings, and our AI generates content instantly based on your input.",
+  },
+  {
+    category: "AI",
+    question: "Can I use AI-generated content commercially?",
+    answer:
+      "Usage depends on your plan and content type. Please review our terms before using content commercially.",
   },
   {
     category: "Creator",
-    question: "How do creators earn?",
+    question: "How do creators earn on CreatorVibe?",
     answer:
-      "Creators earn through downloads and premium content usage.",
+      "Creators can earn through premium content, subscriptions, and engagement on their published work.",
+  },
+  {
+    category: "Creator",
+    question: "How do I become a creator?",
+    answer:
+      "Sign up and start publishing content from your dashboard. No separate application is required.",
   },
   {
     category: "Account",
     question: "How do I edit my profile?",
     answer:
-      "Go to your profile and click on 'Edit Profile'.",
+      "Go to your profile settings and update your information anytime.",
+  },
+  {
+    category: "Account",
+    question: "How do I reset my password?",
+    answer:
+      "Use the 'Forgot Password' option on the login page to reset your password securely.",
+  },
+  {
+    category: "Billing",
+    question: "How do I cancel my subscription?",
+    answer:
+      "You can cancel anytime from your account settings. Access remains active until the billing cycle ends.",
   },
 ];
 
-const categories = ["All", "General", "Pricing", "Creator", "Account"];
+const categories = ["All", "General", "AI", "Creator", "Account", "Billing"];
 
 export default function FAQ() {
-
-  const navigate = useNavigate();  
+  const navigate = useNavigate();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
@@ -55,7 +78,8 @@ export default function FAQ() {
       activeCategory === "All" || item.category === activeCategory;
 
     const matchSearch =
-      item.question.toLowerCase().includes(search.toLowerCase());
+      item.question.toLowerCase().includes(search.toLowerCase()) ||
+      item.answer.toLowerCase().includes(search.toLowerCase());
 
     return matchCategory && matchSearch;
   });
@@ -69,16 +93,13 @@ export default function FAQ() {
           Help Center
         </h1>
         <p className="text-slate-400 mt-2 text-sm">
-          Find answers, guides, and support for SnapVibe AI
+          Find answers and support for CreatorVibe
         </p>
       </div>
 
       {/* SEARCH */}
       <div className="max-w-2xl mx-auto mb-6 relative">
-        <Search
-          size={16}
-          className="absolute left-3 top-3 text-slate-400"
-        />
+        <Search size={16} className="absolute left-3 top-3 text-slate-400" />
         <input
           type="text"
           placeholder="Search questions..."
@@ -88,7 +109,7 @@ export default function FAQ() {
         />
       </div>
 
-      {/* CATEGORY PILLS */}
+      {/* CATEGORY */}
       <div className="flex justify-center flex-wrap gap-2 mb-10">
         {categories.map((cat) => (
           <button
@@ -105,7 +126,7 @@ export default function FAQ() {
         ))}
       </div>
 
-      {/* FAQ LIST */}
+      {/* FAQ */}
       <div className="max-w-3xl mx-auto space-y-4">
         {filtered.map((faq, index) => {
           const isOpen = openIndex === index;
@@ -113,12 +134,10 @@ export default function FAQ() {
           return (
             <div
               key={index}
-              className="rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md transition"
+              className="rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md"
             >
               <button
-                onClick={() =>
-                  setOpenIndex(isOpen ? null : index)
-                }
+                onClick={() => setOpenIndex(isOpen ? null : index)}
                 className="w-full flex justify-between items-center px-5 py-4 text-left"
               >
                 <span className="text-sm font-medium">
@@ -127,9 +146,7 @@ export default function FAQ() {
 
                 <ChevronDown
                   size={18}
-                  className={`transition ${
-                    isOpen ? "rotate-180" : ""
-                  }`}
+                  className={`transition ${isOpen ? "rotate-180" : ""}`}
                 />
               </button>
 
@@ -160,11 +177,13 @@ export default function FAQ() {
           Still have questions?
         </p>
 
-        <button onClick={() => navigate("/contact")} className="px-6 py-2 bg-indigo-600 rounded-full text-sm hover:opacity-90 transition">
+        <button
+          onClick={() => navigate("/contact")}
+          className="px-6 py-2 bg-indigo-600 rounded-full text-sm hover:opacity-90 transition"
+        >
           Contact Support
         </button>
       </div>
-
     </section>
   );
 }
