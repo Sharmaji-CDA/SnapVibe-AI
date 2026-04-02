@@ -134,11 +134,11 @@ export default function UserProfile() {
 
   return (
     <section className="bg-slate-100 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
 
         {/* 🔥 PROFILE HEADER */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
 
             <div className="flex items-center gap-4 sm:gap-6">
               <img
@@ -147,11 +147,11 @@ export default function UserProfile() {
                   user.photoURL ||
                   `https://ui-avatars.com/api/?name=${name}`
                 }
-                className="h-20 w-20 sm:h-24 sm:w-24 rounded-full"
+                className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full"
               />
 
               <div>
-                <h1 className="text-lg sm:text-2xl font-bold text-slate-700">
+                <h1 className="text-base sm:text-lg md:text-2xl font-bold text-slate-700">
                   {name}
                 </h1>
 
@@ -173,7 +173,7 @@ export default function UserProfile() {
 
             <button
               onClick={() => setEditOpen(true)}
-              className="w-full sm:w-auto px-5 py-2 bg-black text-white rounded-xl text-sm"
+              className="w-full sm:w-auto px-4 sm:px-5 py-2 bg-black text-white rounded-xl text-sm"
             >
               Edit Profile
             </button>
@@ -214,10 +214,10 @@ export default function UserProfile() {
 
 function NormalUserSection({ plan, downloads, likes, stats }: { plan?: string; downloads: ImageItem[]; likes: ImageItem[]; stats: any }) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 sm:space-y-8">
 
       {/* 🔥 STATS */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <Stat title="Downloads" value={stats.downloads} />
         <Stat title="Likes" value={stats.likes} />
         <Stat title="Purchases" value="0" />
@@ -226,7 +226,7 @@ function NormalUserSection({ plan, downloads, likes, stats }: { plan?: string; d
 
       {/* 🔥 DOWNLOADS */}
       <Section title="Your Downloads">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {downloads.length ? (
             downloads.map((img) => (
               <ImageCard
@@ -248,7 +248,7 @@ function NormalUserSection({ plan, downloads, likes, stats }: { plan?: string; d
 
       {/* 🔥 LIKES */}
       <Section title="Liked Images">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {likes.length ? (
             likes.map((img) => (
               <ImageCard
@@ -300,7 +300,7 @@ function CreatorSection({
         Your Uploads
       </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {images.map((img) => (
           <ImageCard
             key={img.id}
